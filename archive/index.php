@@ -1,6 +1,6 @@
 <?php
 // Load card data
-$json = file_get_contents(__DIR__ . '/data/cards.json');
+$json = file_get_contents(__DIR__ . '/../data/cards.json');
 $cards = json_decode($json, true);
 
 // Group cards by category, preserving sort order
@@ -19,7 +19,7 @@ $categoryOrder = ['Auditory', 'Cognitive', 'Intersectional', 'Mental Health', 'N
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inclusive Design Persona Cards</title>
   <meta name="description" content="A collection of 40 inclusive design persona cards representing diverse users with disabilities, cognitive differences, situational impairments, and more. Use these personas to build more accessible digital products.">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../css/style.css">
 	<link href="https://fonts.googleapis.com" rel="stylesheet">
 </head>
 <body>

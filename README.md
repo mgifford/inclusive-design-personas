@@ -79,12 +79,13 @@ Open [http://localhost:8765](http://localhost:8765) in your browser.
 
 ## File Structure
 
-```
+``` 
 Inclusive Design Persona Cards/
 ├── server.py          # Static site generator + local preview server
-├── index.php          # Legacy PHP implementation (no longer required for deployment)
-├── card.php           # Legacy PHP implementation
-├── 404.php            # Legacy PHP implementation
+├── archive/           # Archived legacy PHP implementation
+│   ├── index.php
+│   ├── card.php
+│   └── 404.php
 ├── css/
 │   └── style.css      # All styles, including print media query
 └── data/
