@@ -26,7 +26,7 @@
       </p>
     </section>
 
-    <div id="cards-root" aria-live="polite"></div>
+    <div id="cards-root"></div>
   </main>
 
   <footer class="site-footer" role="contentinfo">
@@ -100,7 +100,7 @@
         })
         .then(renderCards)
         .catch(function (error) {
-          document.getElementById('cards-root').innerHTML = '<p>' + escapeHtml(error.message) + '</p>';
+          document.getElementById('cards-root').innerHTML = '<p role="alert">' + escapeHtml(error.message) + '</p>';
         });
     })();
   </script>
