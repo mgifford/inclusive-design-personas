@@ -13,7 +13,7 @@ import re
 import shutil
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 BASE_DIR = Path(__file__).parent
 DATA_FILE = BASE_DIR / "data" / "cards.json"
@@ -40,6 +40,11 @@ def e(text):
 
 def cat_id(name):
     return re.sub(r"[^a-z0-9]+", "-", name.lower())
+
+
+def robohash_url(card, size):
+    seed = f"{card.get('name', '')}-{card.get('title', '')}-{card.get('id', '')}"
+    return f"https://robohash.org/{quote(seed)}.png?size={size}&set=set1&bgset=bg1"
 
 
 def card_by_id(card_id):
@@ -111,14 +116,18 @@ def render_index(*, static=False):
         cards_html = []
         for card in categories[cat_name]:
             card_href = f"cards/{card['id']}.html" if static else f"/card?id={card['id']}"
+            avatar_url = robohash_url(card, "200x200")
             cards_html.append(
                 f"""
           <li>
             <article class="card-preview" aria-labelledby="card-title-{card['id']}">
               <header class="card-preview__header">
-                <span class="card-preview__category" aria-label="Category: {e(cat_name)}">{e(cat_name)}</span>
-                <h3 id="card-title-{card['id']}">{e(card['title'])}</h3>
-                <p class="card-preview__name">{e(card['name'])}</p>
+                <img class="card-preview__avatar" src="{e(avatar_url)}" alt="Persona avatar for {e(card['name'])}" loading="lazy" decoding="async" width="72" height="72">
+                <div class="card-preview__title-group">
+                  <span class="card-preview__category" aria-label="Category: {e(cat_name)}">{e(cat_name)}</span>
+                  <h3 id="card-title-{card['id']}">{e(card['title'])}</h3>
+                  <p class="card-preview__name">{e(card['name'])}</p>
+                </div>
               </header>
 
               <div class="card-preview__body">
@@ -195,6 +204,7 @@ def render_card(card_id, *, static=False):
             return f"/card?id={rid}"
         css_href = "/css/style.css"
 
+    avatar_url = robohash_url(card, "240x240")
     tech_items = "".join(f"<li>{e(t.strip())}</li>" for t in techs)
 
     related_section = ""
@@ -288,9 +298,14 @@ def render_card(card_id, *, static=False):
 
     <article class="card-detail no-print" aria-labelledby="card-heading">
       <header class="card-detail__header">
-        <span class="card-detail__category">{e(card['category'])}</span>
-        <h1 id="card-heading">{e(card['title'])}</h1>
-        <p class="card-detail__persona-name">Persona: {e(card['name'])}</p>
+        <div class="card-detail__hero">
+          <img class="card-detail__avatar" src="{e(avatar_url)}" alt="Persona avatar for {e(card['name'])}" loading="eager" decoding="async" width="112" height="112">
+          <div class="card-detail__hero-text">
+            <span class="card-detail__category">{e(card['category'])}</span>
+            <h1 id="card-heading">{e(card['title'])}</h1>
+            <p class="card-detail__persona-name">Persona: {e(card['name'])}</p>
+          </div>
+        </div>
         <p class="card-detail__backstory">{e(card['backstory'])}</p>
       </header>
 

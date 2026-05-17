@@ -18,6 +18,7 @@ Use the cards during design critiques, sprint planning, usability reviews, or AI
 - **WCAG 2.2 AA compliant** — semantic HTML, proper landmark regions, skip navigation, keyboard accessible, minimum contrast ratios of 11:1
 - **Printable double-sided cards** — fold-over layout sized for a half sheet of letter paper
 - **Built-in AI audit prompts** — each card includes a pre-written prompt mapped to WCAG 2.2 criteria for use with AI development tools
+- **Deterministic persona avatars** — cards use generated RoboHash images for quick visual distinction
 - **No frameworks** — pure Python (build tool), HTML, CSS, and JSON; no npm, no React
 - **Responsive layout** — horizontal card grid on desktop, vertical stack on mobile
 
