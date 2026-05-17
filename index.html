@@ -41,7 +41,7 @@
       ];
 
       function escapeHtml(value) {
-        return String(value == null ? '' : value)
+        return String(value ?? '')
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
@@ -96,14 +96,14 @@
 
       fetch('data/cards.json')
         .then(function (response) {
-          if (!response.ok) throw new Error('Unable to load cards data (HTTP ' + response.status + ').');
+          if (!response.ok) throw new Error('Unable to load cards data (HTTP ' + response.status + '). Please ensure data/cards.json exists and is accessible.');
           return response.text();
         })
         .then(function (text) {
           try {
             return JSON.parse(text);
           } catch (error) {
-            throw new Error('Cards data is not valid JSON.');
+            throw new Error('Cards data is not valid JSON: ' + error.message);
           }
         })
         .then(renderCards)
