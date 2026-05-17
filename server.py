@@ -34,6 +34,7 @@ CATEGORY_ORDER = [
 
 
 def e(text):
+    """HTML-escape a value for safe output in HTML context."""
     return html.escape(str(text) if text is not None else "")
 
 
@@ -398,7 +399,7 @@ def render_404(*, static=False):
 def build_static(output_dir):
     """Generate a full static copy of the site in output_dir, replacing any existing content there."""
     out = Path(output_dir)
-    if out.resolve() in (BASE_DIR.resolve(), BASE_DIR.resolve().parent, Path("/")):
+    if out.resolve() in (BASE_DIR.resolve(), Path("/")):
         raise ValueError("Refusing to delete unsafe output directory. Choose a dedicated build directory like 'dist'.")
     if out.exists():
         shutil.rmtree(out)
