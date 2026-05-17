@@ -42,7 +42,7 @@ Use the cards during design critiques, sprint planning, usability reviews, or AI
 
 ### Requirements
 
-- **Python 3**
+- **Python 3.7+**
 
 ### Build static site
 
