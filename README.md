@@ -18,7 +18,7 @@ Use the cards during design critiques, sprint planning, usability reviews, or AI
 - **WCAG 2.2 AA compliant** — semantic HTML, proper landmark regions, skip navigation, keyboard accessible, minimum contrast ratios of 11:1
 - **Printable double-sided cards** — fold-over layout sized for a half sheet of letter paper
 - **Built-in AI audit prompts** — each card includes a pre-written prompt mapped to WCAG 2.2 criteria for use with AI development tools
-- **No frameworks** — pure PHP, CSS, and JSON; no build tools, no npm, no React
+- **No frameworks** — pure Python (build tool), HTML, CSS, and JSON; no npm, no React
 - **Responsive layout** — horizontal card grid on desktop, vertical stack on mobile
 
 ---
@@ -42,22 +42,32 @@ Use the cards during design critiques, sprint planning, usability reviews, or AI
 
 ### Requirements
 
-- **PHP 8.0+** (recommended for production or local use), or
-- **Python 3** (included preview server for development without PHP)
+- **Python 3.7+**
 
-### Run with PHP
+### Build static site
 
 ```bash
 git clone <your-repo-url>
 cd "Inclusive Design Persona Cards"
-php -S localhost:8000
+python3 server.py --build --output dist
+```
+
+This generates:
+
+- `dist/index.html`
+- `dist/404.html`
+- `dist/cards/*.html`
+- copied assets in `dist/css/` and `dist/data/`
+
+### Preview generated static site locally
+
+```bash
+python3 -m http.server 8000 --directory dist
 ```
 
 Open [http://localhost:8000](http://localhost:8000) in your browser.
 
-### Run with the Python preview server
-
-A Python server is included that mirrors the PHP application logic — useful if PHP is not installed locally.
+### Development preview server (optional)
 
 ```bash
 python3 server.py
@@ -71,10 +81,10 @@ Open [http://localhost:8765](http://localhost:8765) in your browser.
 
 ```
 Inclusive Design Persona Cards/
-├── index.php          # Home page — all 40 cards grouped by category
-├── card.php           # Individual card detail page (?id=N)
-├── 404.php            # 404 error page
-├── server.py          # Python development preview server
+├── server.py          # Static site generator + local preview server
+├── index.php          # Legacy PHP implementation (no longer required for deployment)
+├── card.php           # Legacy PHP implementation
+├── 404.php            # Legacy PHP implementation
 ├── css/
 │   └── style.css      # All styles, including print media query
 └── data/
@@ -89,7 +99,7 @@ Each entry in `data/cards.json` contains the following fields:
 
 | Field | Type | Description |
 |---|---|---|
-| `id` | integer | Unique card identifier, used in URL (`card.php?id=N`) |
+| `id` | integer | Unique card identifier, used in generated paths (`cards/N.html`) |
 | `title` | string | Condition or impairment name (e.g. "Deaf", "Low Vision") |
 | `name` | string | Persona first name |
 | `backstory` | string | Brief biographical description of the persona |
@@ -147,6 +157,17 @@ This application is built to meet **WCAG 2.2 Level AA**. Key implementation deta
 - All interactive elements meet the 24×24px minimum touch target size (WCAG 2.5.8)
 - External links include `rel="noopener noreferrer"` and an `aria-label` noting they open in a new tab
 - No mouse-only event handlers; all interactions are keyboard accessible
+
+---
+
+## GitHub Pages Deployment
+
+GitHub Actions automatically builds and deploys the static site from `main` using:
+
+- `.github/workflows/deploy-pages.yml`
+- `python3 server.py --build --output dist`
+
+The workflow uploads `dist/` as the Pages artifact and publishes it to GitHub Pages.
 
 ---
 

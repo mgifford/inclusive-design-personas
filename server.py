@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """
-Preview server for Inclusive Design Persona Cards.
-Mirrors the PHP application logic using Python's http.server.
-For preview/development only — deploy the .php files on a PHP host.
+Preview and static build tool for Inclusive Design Persona Cards.
+
+- `python3 server.py` starts a local preview server.
+- `python3 server.py --build --output dist` generates a static site for GitHub Pages.
 """
+
+import argparse
+import html
 import json
 import re
-import html
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import shutil
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 BASE_DIR = Path(__file__).parent
 DATA_FILE = BASE_DIR / "data" / "cards.json"
@@ -18,59 +22,82 @@ with open(DATA_FILE, encoding="utf-8") as f:
     ALL_CARDS = json.load(f)
 
 CATEGORY_ORDER = [
-    "Auditory", "Cognitive", "Intersectional", "Mental Health",
-    "Neurodiversity", "Physical", "Speech", "Visual"
+    "Auditory",
+    "Cognitive",
+    "Intersectional",
+    "Mental Health",
+    "Neurodiversity",
+    "Physical",
+    "Speech",
+    "Visual",
 ]
 
+
 def e(text):
-    """HTML-escape a value."""
+    """HTML-escape a value for safe output in HTML context."""
     return html.escape(str(text) if text is not None else "")
+
 
 def cat_id(name):
     return re.sub(r"[^a-z0-9]+", "-", name.lower())
 
+
 def card_by_id(card_id):
-    for c in ALL_CARDS:
-        if c["id"] == card_id:
-            return c
+    for card in ALL_CARDS:
+        if card["id"] == card_id:
+            return card
     return None
 
+
 def related_cards(card):
-    return [c for c in ALL_CARDS if c["category"] == card["category"] and c["id"] != card["id"]]
+    return [
+        c
+        for c in ALL_CARDS
+        if c["category"] == card["category"] and c["id"] != card["id"]
+    ]
 
-# ── HTML fragments ─────────────────────────────────────────────────────────────
 
-def page_shell(title, description, body_html, *, header_link=False):
-    header_content = (
-        f'<p><a href="/">Inclusive Design Persona Cards</a></p>'
-        if header_link else
-        '<h1>Inclusive Design Persona Cards</h1>'
-        '<p class="tagline">40 personas. Every kind of user. Better products for everyone.</p>'
+def page_shell(
+    title,
+    description,
+    body_html,
+    *,
+    css_href,
+    header_html,
+    footer_html=None,
+    extra_scripts="",
+):
+    footer = (
+        footer_html
+        if footer_html is not None
+        else """  <footer class=\"site-footer\" role=\"contentinfo\">
+    <p>Inclusive Design Persona Cards &mdash; Helping teams build accessible, human-centered products.</p>
+  </footer>"""
     )
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang=\"en\">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset=\"UTF-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
   <title>{e(title)}</title>
-  <meta name="description" content="{e(description)}">
-  <link rel="stylesheet" href="/css/style.css">
+  <meta name=\"description\" content=\"{e(description)}\">
+  <link rel=\"stylesheet\" href=\"{e(css_href)}\">
 </head>
 <body>
-  <a class="skip-link" href="#main-content">Skip to main content</a>
-  <header class="site-header" role="banner">
-    <div class="header-inner">{header_content}</div>
+  <a class=\"skip-link\" href=\"#main-content\">Skip to main content</a>
+  <header class=\"site-header\" role=\"banner\">
+    <div class=\"header-inner\">{header_html}</div>
   </header>
-  <main id="main-content">
+  <main id=\"main-content\">
 {body_html}
   </main>
-  <footer class="site-footer" role="contentinfo">
-    <p>Inclusive Design Persona Cards &mdash; Helping teams build accessible, human-centered products.</p>
-  </footer>
+{footer}
+{extra_scripts}
 </body>
 </html>"""
 
-def render_index():
+
+def render_index(*, static=False):
     categories = {}
     for card in ALL_CARDS:
         categories.setdefault(card["category"], []).append(card)
@@ -80,37 +107,45 @@ def render_index():
         if cat_name not in categories:
             continue
         cid = cat_id(cat_name)
-        card_items = []
-        for card in categories[cat_name]:
-            card_url = f"/card?id={card['id']}"
-            card_items.append(f"""
-              <li>
-                <article class="card-preview" aria-labelledby="card-title-{card['id']}">
-                  <header class="card-preview__header">
-                    <span class="card-preview__category" aria-label="Category: {e(cat_name)}">{e(cat_name)}</span>
-                    <h3 id="card-title-{card['id']}">{e(card['title'])}</h3>
-                    <p class="card-preview__name">{e(card['name'])}</p>
-                  </header>
-                  <div class="card-preview__body">
-                    <p class="card-preview__backstory">{e(card['backstory'])}</p>
-                  </div>
-                  <footer class="card-preview__footer">
-                    <a class="card-link" href="{e(card_url)}">
-                      View {e(card['title'])} card
-                      <span class="visually-hidden">for {e(card['name'])}</span>
-                    </a>
-                  </footer>
-                </article>
-              </li>""")
 
-        sections.append(f"""
+        cards_html = []
+        for card in categories[cat_name]:
+            card_href = f"cards/{card['id']}.html" if static else f"/card?id={card['id']}"
+            cards_html.append(
+                f"""
+          <li>
+            <article class="card-preview" aria-labelledby="card-title-{card['id']}">
+              <header class="card-preview__header">
+                <span class="card-preview__category" aria-label="Category: {e(cat_name)}">{e(cat_name)}</span>
+                <h3 id="card-title-{card['id']}">{e(card['title'])}</h3>
+                <p class="card-preview__name">{e(card['name'])}</p>
+              </header>
+
+              <div class="card-preview__body">
+                <p class="card-preview__backstory">{e(card['backstory'])}</p>
+              </div>
+
+              <footer class="card-preview__footer">
+                <a class="card-link" href="{e(card_href)}">
+                  View {e(card['title'])} card
+                  <span class="visually-hidden">for {e(card['name'])}</span>
+                </a>
+              </footer>
+            </article>
+          </li>"""
+            )
+
+        sections.append(
+            f"""
     <section class="category-section" aria-labelledby="cat-{cid}">
       <h2 id="cat-{cid}">{e(cat_name)}</h2>
-      <ul class="cards-grid" role="list">{''.join(card_items)}
+      <ul class="cards-grid" role="list">{''.join(cards_html)}
       </ul>
-    </section>""")
+    </section>"""
+        )
 
-    body = """    <section class="page-intro" aria-labelledby="intro-heading">
+    body = (
+        """    <section class="page-intro" aria-labelledby="intro-heading">
       <h2 id="intro-heading" class="visually-hidden">About These Cards</h2>
       <p>
         Great products are built for everyone&mdash;not just the majority. These persona cards represent
@@ -120,16 +155,25 @@ def render_index():
         full spectrum of human diversity. Use them in design critiques, sprint planning, accessibility
         audits, and AI development to keep diverse users at the center of every decision.
       </p>
-    </section>""" + "".join(sections)
+    </section>"""
+        + "".join(sections)
+    )
+
+    header_html = (
+        '<h1>Inclusive Design Persona Cards</h1>'
+        '<p class="tagline">40 personas. Every kind of user. Better products for everyone.</p>'
+    )
 
     return page_shell(
         "Inclusive Design Persona Cards",
         "A collection of 40 inclusive design persona cards representing diverse users.",
         body,
-        header_link=False
+        css_href="css/style.css" if static else "/css/style.css",
+        header_html=header_html,
     )
 
-def render_card(card_id):
+
+def render_card(card_id, *, static=False):
     card = card_by_id(card_id)
     if card is None:
         return None
@@ -138,15 +182,27 @@ def render_card(card_id):
     cid = cat_id(card["category"])
     techs = card["assistiveTechnologies"]
 
-    # No whitespace between <li> elements — prevents spaces before CSS-generated commas
+    if static:
+        home_href = "../index.html"
+        category_href = f"../index.html#cat-{cid}"
+        def related_href(rid):
+            return f"{rid}.html"
+        css_href = "../css/style.css"
+    else:
+        home_href = "/"
+        category_href = f"/#cat-{cid}"
+        def related_href(rid):
+            return f"/card?id={rid}"
+        css_href = "/css/style.css"
+
     tech_items = "".join(f"<li>{e(t.strip())}</li>" for t in techs)
 
-    # Related cards section (inside card article)
     related_section = ""
     if rel:
         links = "".join(
-            f'<li><a href="/card?id={r["id"]}">{e(r["title"])}'
-            f'<span class="visually-hidden"> &mdash; {e(r["name"])}</span></a></li>'
+            f'<li><a href="{e(related_href(r["id"]))}">{e(r["title"])}'
+            f'<span class="visually-hidden"> &mdash; {e(r["name"])}'
+            f"</span></a></li>"
             for r in rel
         )
         related_section = f"""
@@ -155,40 +211,13 @@ def render_card(card_id):
         <ul class="related-cards-list" role="list">{links}</ul>
       </section>"""
 
-    # Print front: related card titles as plain text
     print_related = ""
     if rel:
-        titles = ", ".join(e(r["title"]) for r in rel)
-        print_related = f'<div class="print-related"><strong>Related:</strong> {titles}</div>'
-
-    # AI prompt aside (screen only)
-    ai_section = ""
-    if card.get("aiPromptUrl"):
-        copy_svg = '<svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
-        prompt_block = ""
-        if card.get("aiPrompt"):
-            prompt_block = f"""
-      <div class="ai-prompt-wrapper">
-        <div class="ai-prompt-toolbar">
-          <span class="ai-prompt-label">Prompt</span>
-          <button class="copy-prompt-btn" type="button" onclick="copyPrompt(this)" aria-label="Copy AI prompt text to clipboard">
-            {copy_svg} Copy prompt
-          </button>
-        </div>
-        <pre class="ai-prompt-code"><code>{e(card['aiPrompt'])}</code></pre>
-      </div>"""
-        ai_section = f"""
-    <aside class="ai-prompt-section no-print" aria-labelledby="ai-prompt-heading">
-      <h2 id="ai-prompt-heading">AI Development Prompt</h2>
-      <p>Incorporate {e(card['title'])} into your AI development with this prompt.</p>{prompt_block}
-      <a class="ai-prompt-link"
-         href="{e(card['aiPromptUrl'])}"
-         target="_blank"
-         rel="noopener noreferrer"
-         aria-label="Open AI prompt for {e(card['title'])} (opens in new tab)">
-        Use the {e(card['title'])} AI Prompt &rarr;
-      </a>
-    </aside>"""
+        print_related = (
+            '<div class="print-related"><strong>Related:</strong> '
+            + e(", ".join(r["title"] for r in rel))
+            + "</div>"
+        )
 
     clinical = ""
     if card.get("clinicalExamples"):
@@ -198,8 +227,38 @@ def render_card(card_id):
         <p class="clinical-examples">{e(card['clinicalExamples'])}</p>
       </section>"""
 
-    # Print-only card (front + back)
-    print_tech_items = "\n".join(f"              <li>{e(t.strip())}</li>" for t in techs)
+    ai_section = ""
+    if card.get("aiPromptUrl"):
+        prompt_block = ""
+        if card.get("aiPrompt"):
+            prompt_block = f"""
+      <div class="ai-prompt-wrapper">
+        <div class="ai-prompt-toolbar">
+          <span class="ai-prompt-label">Prompt</span>
+          <button class="copy-prompt-btn" type="button" onclick="copyPrompt(this)" aria-label="Copy AI prompt text to clipboard">
+            <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy prompt
+          </button>
+        </div>
+        <pre class="ai-prompt-code"><code>{e(card['aiPrompt'])}</code></pre>
+      </div>"""
+
+        ai_section = f"""
+    <aside class="ai-prompt-section no-print" aria-labelledby="ai-prompt-heading">
+      <h2 id="ai-prompt-heading">AI Development Prompt</h2>
+      <p>Incorporate {e(card['title'])} into your AI development with this prompt.</p>{prompt_block}
+      <a class="ai-prompt-link"
+         href="{e(card['aiPromptUrl'])}"
+         target="_blank"
+         rel="noopener noreferrer"
+         aria-label="Open AI prompt for {e(card['title'])} (opens in new tab)">
+        Use the {e(card['title'])} AI Prompt ↗
+      </a>
+    </aside>"""
+
     print_ai = ""
     if card.get("aiPromptUrl"):
         print_ai = f"""
@@ -207,11 +266,13 @@ def render_card(card_id):
           <p>Incorporate {e(card['title'])} into your AI development with this prompt:</p>
           <p class="print-ai-url">{e(card['aiPromptUrl'])}</p>"""
 
+    print_tech_items = "\n".join(f"              <li>{e(t.strip())}</li>" for t in techs)
+
     body = f"""
     <nav class="breadcrumb" aria-label="Breadcrumb">
       <ol>
-        <li><a href="/">All Cards</a></li>
-        <li><a href="/#cat-{cid}">{e(card['category'])}</a></li>
+        <li><a href="{e(home_href)}">All Cards</a></li>
+        <li><a href="{e(category_href)}">{e(card['category'])}</a></li>
         <li><span aria-current="page">{e(card['title'])}</span></li>
       </ol>
     </nav>
@@ -279,20 +340,17 @@ def render_card(card_id):
 {print_ai}
         </div>
       </div>
-      <p class="print-fold-guide">&#9986; Fold right panel behind left panel to create a double-sided card</p>
+      <p class="print-fold-guide">✂ Fold right panel behind left panel to create a double-sided card</p>
     </div>
 """
 
     footer_html = f"""  <footer class="site-footer no-print" role="contentinfo">
     <p>
-      <a href="/">← Back to all persona cards</a>
+      <a href="{e(home_href)}">← Back to all persona cards</a>
       &nbsp;&mdash;&nbsp;
       Inclusive Design Persona Cards
     </p>
   </footer>"""
-
-    title = f"{card['title']} — Inclusive Design Persona Cards"
-    desc = f"Inclusive design persona for {card['title']} ({card['category']}). Digital challenges, assistive technologies, and design considerations."
 
     copy_script = """  <script>
   function copyPrompt(btn) {
@@ -312,23 +370,65 @@ def render_card(card_id):
   }
   </script>"""
 
-    page = page_shell(title, desc, body, header_link=True)
-    # Inject custom footer and copy script
-    page = page.replace(
-        "  <footer",
-        "  " + footer_html + "\n" + copy_script + "\n  <footer",
-        1
-    ).replace(
-        "  <footer class=\"site-footer\" role=\"contentinfo\">\n    <p>Inclusive Design Persona Cards &mdash; Helping teams build accessible, human-centered products.</p>\n  </footer>",
-        ""
+    return page_shell(
+        f"{card['title']} — Inclusive Design Persona Cards",
+        f"Inclusive design persona card for {card['title']} ({card['category']}). Learn about digital challenges, assistive technologies, and design considerations.",
+        body,
+        css_href=css_href,
+        header_html=f'<p><a href="{e(home_href)}">Inclusive Design Persona Cards</a></p>',
+        footer_html=footer_html,
+        extra_scripts=copy_script,
     )
-    return page
+
+
+def render_404(*, static=False):
+    home_href = "index.html" if static else "/"
+    css_href = "css/style.css" if static else "/css/style.css"
+
+    body = f"""    <h1>Card Not Found</h1>
+    <p>The persona card you requested does not exist.</p>
+    <p><a href="{e(home_href)}">Return to all persona cards</a></p>"""
+
+    return page_shell(
+        "Card Not Found — Inclusive Design Persona Cards",
+        "The persona card you requested does not exist.",
+        body,
+        css_href=css_href,
+        header_html=f'<p><a href="{e(home_href)}">Inclusive Design Persona Cards</a></p>',
+    )
+
+
+def build_static(output_dir):
+    """Generate a full static copy of the site in output_dir.
+
+    Warning: if output_dir already exists, it is deleted recursively before rebuilding.
+    """
+    out = Path(output_dir)
+    if out.resolve() in (BASE_DIR.resolve(), Path("/")):
+        raise ValueError(
+            f"Refusing to delete unsafe output directory: {out.resolve()}. "
+            "Choose a dedicated build directory like 'dist'."
+        )
+    if out.exists():
+        shutil.rmtree(out)
+    (out / "cards").mkdir(parents=True, exist_ok=True)
+
+    shutil.copytree(BASE_DIR / "css", out / "css")
+    shutil.copytree(BASE_DIR / "data", out / "data")
+
+    prompts = BASE_DIR / "prompts.html"
+    if prompts.exists():
+        shutil.copy2(prompts, out / "prompts.html")
+
+    (out / "index.html").write_text(render_index(static=True), encoding="utf-8")
+    (out / "404.html").write_text(render_404(static=True), encoding="utf-8")
+
+    for card in ALL_CARDS:
+        page = render_card(card["id"], static=True)
+        (out / "cards" / f"{card['id']}.html").write_text(page, encoding="utf-8")
 
 
 class Handler(BaseHTTPRequestHandler):
-    def log_message(self, format, *args):
-        print(f"  {self.address_string()} → {format % args}")
-
     def send_html(self, content, status=200):
         encoded = content.encode("utf-8")
         self.send_response(status)
@@ -341,45 +441,77 @@ class Handler(BaseHTTPRequestHandler):
         try:
             with open(path, "rb") as f:
                 data = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", content_type)
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
         except FileNotFoundError:
-            self.send_html("<h1>404</h1>", 404)
+            self.send_html(render_404(static=False), 404)
+            return
+
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
         qs = parse_qs(parsed.query)
 
-        if path in ("/", "/index.php"):
-            self.send_html(render_index())
+        if path in ("/", "/index.php", "/index.html"):
+            self.send_html(render_index(static=False))
+            return
 
-        elif path in ("/card", "/card.php"):
-            card_id = int(qs.get("id", [0])[0])
-            html_content = render_card(card_id)
-            if html_content is None:
-                self.send_html("<html><body><h1>Card Not Found</h1><p><a href='/'>Back to all cards</a></p></body></html>", 404)
+        if path in ("/card", "/card.php"):
+            try:
+                card_id = int(qs.get("id", [0])[0])
+            except ValueError:
+                card_id = 0
+            page = render_card(card_id, static=False)
+            if page is None:
+                self.send_html(render_404(static=False), 404)
             else:
-                self.send_html(html_content)
+                self.send_html(page)
+            return
 
-        elif path.startswith("/css/"):
-            css_path = BASE_DIR / path.lstrip("/")
-            self.send_file(css_path, "text/css; charset=utf-8")
+        if path in ("/404", "/404.php", "/404.html"):
+            self.send_html(render_404(static=False), 404)
+            return
 
-        elif path.startswith("/data/"):
-            data_path = BASE_DIR / path.lstrip("/")
-            self.send_file(data_path, "application/json; charset=utf-8")
+        if path.startswith("/css/"):
+            self.send_file(BASE_DIR / path.lstrip("/"), "text/css; charset=utf-8")
+            return
 
-        else:
-            self.send_html("<html><body><h1>Not Found</h1><p><a href='/'>Home</a></p></body></html>", 404)
+        if path.startswith("/data/"):
+            self.send_file(BASE_DIR / path.lstrip("/"), "application/json; charset=utf-8")
+            return
+
+        if path == "/prompts.html":
+            self.send_file(BASE_DIR / "prompts.html", "text/html; charset=utf-8")
+            return
+
+        self.send_html(render_404(static=False), 404)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build", action="store_true", help="Generate static site files")
+    parser.add_argument("--output", default="dist", help="Output directory for static build")
+    parser.add_argument("--port", type=int, default=8765, help="Preview server port")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    if args.build:
+        build_static(args.output)
+        print(f"Static site generated in {Path(args.output).resolve()}")
+        return
+
+    server = HTTPServer(("127.0.0.1", args.port), Handler)
+    print(f"Preview server running at http://127.0.0.1:{args.port}/")
+    print("Press Ctrl+C to stop.")
+    server.serve_forever()
 
 
 if __name__ == "__main__":
-    port = 8765
-    server = HTTPServer(("127.0.0.1", port), Handler)
-    print(f"Preview server running at http://127.0.0.1:{port}/")
-    print("Press Ctrl+C to stop.")
-    server.serve_forever()
+    main()
