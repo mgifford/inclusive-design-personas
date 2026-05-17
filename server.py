@@ -185,12 +185,14 @@ def render_card(card_id, *, static=False):
     if static:
         home_href = "../index.html"
         category_href = f"../index.html#cat-{cid}"
-        related_href = lambda rid: f"{rid}.html"
+        def related_href(rid):
+            return f"{rid}.html"
         css_href = "../css/style.css"
     else:
         home_href = "/"
         category_href = f"/#cat-{cid}"
-        related_href = lambda rid: f"/card?id={rid}"
+        def related_href(rid):
+            return f"/card?id={rid}"
         css_href = "/css/style.css"
 
     tech_items = "".join(f"<li>{e(t.strip())}</li>" for t in techs)
@@ -400,7 +402,7 @@ def build_static(output_dir):
     """Generate a full static copy of the site in output_dir, replacing any existing content there."""
     out = Path(output_dir)
     if out.resolve() in (BASE_DIR.resolve(), Path("/")):
-        raise ValueError("Refusing to delete unsafe output directory. Choose a dedicated build directory like 'dist'.")
+        raise ValueError("Refusing to delete repository root or system root directory. Choose a dedicated build directory like 'dist'.")
     if out.exists():
         shutil.rmtree(out)
     (out / "cards").mkdir(parents=True, exist_ok=True)
