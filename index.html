@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inclusive Design Persona Cards</title>
+  <meta name="description" content="Inclusive design personas covering disability, chronic conditions, and situational impairments.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <h1>Inclusive Design Persona Cards</h1>
+      <p class="tagline">40 personas. Every kind of user. Better products for everyone.</p>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="page-intro" aria-labelledby="intro-heading">
+      <h2 id="intro-heading" class="visually-hidden">About These Cards</h2>
+      <p>
+        These persona cards represent real experiences of people with disabilities, chronic conditions,
+        situational impairments, and cognitive differences. Use them during product planning and design
+        reviews to identify barriers early and keep inclusive design at the center of decisions.
+      </p>
+    </section>
+
+    <div id="cards-root"></div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <p>Inclusive Design Persona Cards &mdash; Helping teams build accessible, human-centered products.</p>
+  </footer>
+
+  <script>
+    (function () {
+      var categoryOrder = [
+        'Auditory', 'Cognitive', 'Intersectional', 'Mental Health',
+        'Neurodiversity', 'Physical', 'Speech', 'Visual'
+      ];
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function catId(name) {
+        return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      }
+
+      function renderCards(cards) {
+        var root = document.getElementById('cards-root');
+        var byCategory = {};
+
+        cards.forEach(function (card) {
+          if (!byCategory[card.category]) byCategory[card.category] = [];
+          byCategory[card.category].push(card);
+        });
+
+        var sections = categoryOrder.filter(function (name) {
+          return byCategory[name] && byCategory[name].length;
+        }).map(function (name) {
+          var items = byCategory[name].map(function (card) {
+            var safeId = escapeHtml(card.id);
+            return [
+              '<li>',
+              '  <article class="card-preview" aria-labelledby="card-title-' + safeId + '">',
+              '    <header class="card-preview__header">',
+              '      <span class="card-preview__category" aria-label="Category: ' + escapeHtml(name) + '">' + escapeHtml(name) + '</span>',
+              '      <h3 id="card-title-' + safeId + '">' + escapeHtml(card.title) + '</h3>',
+              '      <p class="card-preview__name">' + escapeHtml(card.name) + '</p>',
+              '    </header>',
+              '    <div class="card-preview__body">',
+              '      <p class="card-preview__backstory">' + escapeHtml(card.backstory) + '</p>',
+              '    </div>',
+              '  </article>',
+              '</li>'
+            ].join('');
+          }).join('');
+
+          return [
+            '<section class="category-section" aria-labelledby="cat-' + catId(name) + '">',
+            '  <h2 id="cat-' + catId(name) + '">' + escapeHtml(name) + '</h2>',
+            '  <ul class="cards-grid" role="list">' + items + '</ul>',
+            '</section>'
+          ].join('');
+        }).join('');
+
+        root.innerHTML = sections || '<p role="status">No persona cards found.</p>';
+      }
+
+      fetch('data/cards.json')
+        .then(function (response) {
+          if (!response.ok) throw new Error('Failed to load persona cards (HTTP ' + response.status + ').');
+          return response.text();
+        })
+        .then(function (text) {
+          try {
+            return JSON.parse(text);
+          } catch (error) {
+            throw new Error('Failed to load persona cards due to invalid data format.');
+          }
+        })
+        .then(renderCards)
+        .catch(function (error) {
+          document.getElementById('cards-root').innerHTML = '<p role="alert">' + escapeHtml(error.message) + '</p>';
+        });
+    })();
+  </script>
+</body>
+</html>
