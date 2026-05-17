@@ -53,6 +53,11 @@
         return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       }
 
+      function robohashUrl(card, size) {
+        var seed = [card.name || '', card.title || '', card.id || ''].join('-');
+        return 'https://robohash.org/' + encodeURIComponent(seed) + '.png?size=' + size + '&set=set1&bgset=bg1';
+      }
+
       function renderCards(cards) {
         var root = document.getElementById('cards-root');
         var byCategory = {};
@@ -67,13 +72,17 @@
         }).map(function (name) {
           var items = byCategory[name].map(function (card) {
             var safeId = escapeHtml(card.id);
+            var avatarUrl = escapeHtml(robohashUrl(card, '200x200'));
             return [
               '<li>',
               '  <article class="card-preview" aria-labelledby="card-title-' + safeId + '">',
               '    <header class="card-preview__header">',
-              '      <span class="card-preview__category" aria-label="Category: ' + escapeHtml(name) + '">' + escapeHtml(name) + '</span>',
-              '      <h3 id="card-title-' + safeId + '">' + escapeHtml(card.title) + '</h3>',
-              '      <p class="card-preview__name">' + escapeHtml(card.name) + '</p>',
+              '      <img class="card-preview__avatar" src="' + avatarUrl + '" alt="Persona avatar for ' + escapeHtml(card.name) + '" loading="lazy" decoding="async" width="72" height="72">',
+              '      <div class="card-preview__title-group">',
+              '        <span class="card-preview__category" aria-label="Category: ' + escapeHtml(name) + '">' + escapeHtml(name) + '</span>',
+              '        <h3 id="card-title-' + safeId + '">' + escapeHtml(card.title) + '</h3>',
+              '        <p class="card-preview__name">' + escapeHtml(card.name) + '</p>',
+              '      </div>',
               '    </header>',
               '    <div class="card-preview__body">',
               '      <p class="card-preview__backstory">' + escapeHtml(card.backstory) + '</p>',
