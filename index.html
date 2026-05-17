@@ -46,7 +46,6 @@
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/"/g, '&quot;')
-          .replace(/`/g, '&#96;')
           .replace(/'/g, '&#39;');
       }
 
@@ -67,12 +66,13 @@
           return byCategory[name] && byCategory[name].length;
         }).map(function (name) {
           var items = byCategory[name].map(function (card) {
+            var safeId = escapeHtml(card.id);
             return [
               '<li>',
-              '  <article class="card-preview" aria-labelledby="card-title-' + card.id + '">',
+              '  <article class="card-preview" aria-labelledby="card-title-' + safeId + '">',
               '    <header class="card-preview__header">',
               '      <span class="card-preview__category" aria-label="Category: ' + escapeHtml(name) + '">' + escapeHtml(name) + '</span>',
-              '      <h3 id="card-title-' + card.id + '">' + escapeHtml(card.title) + '</h3>',
+              '      <h3 id="card-title-' + safeId + '">' + escapeHtml(card.title) + '</h3>',
               '      <p class="card-preview__name">' + escapeHtml(card.name) + '</p>',
               '    </header>',
               '    <div class="card-preview__body">',
