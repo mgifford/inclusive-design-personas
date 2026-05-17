@@ -399,10 +399,16 @@ def render_404(*, static=False):
 
 
 def build_static(output_dir):
-    """Generate a full static copy of the site in output_dir, replacing any existing content there."""
+    """Generate a full static copy of the site in output_dir.
+
+    Warning: if output_dir already exists, it is deleted recursively before rebuilding.
+    """
     out = Path(output_dir)
     if out.resolve() in (BASE_DIR.resolve(), Path("/")):
-        raise ValueError("Refusing to delete repository root or system root directory. Choose a dedicated build directory like 'dist'.")
+        raise ValueError(
+            f"Refusing to delete unsafe output directory: {out.resolve()}. "
+            "Choose a dedicated build directory like 'dist'."
+        )
     if out.exists():
         shutil.rmtree(out)
     (out / "cards").mkdir(parents=True, exist_ok=True)
