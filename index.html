@@ -54,7 +54,7 @@
       }
 
       function robohashUrl(card, size) {
-        var seed = [card.name || '', card.title || '', card.id || ''].join('-');
+        var seed = (card.name || '') + '-' + (card.title || '') + '-' + (card.id || '');
         return 'https://robohash.org/' + encodeURIComponent(seed) + '.png?size=' + size + '&set=set1&bgset=bg1';
       }
 
