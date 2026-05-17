@@ -1,6 +1,6 @@
 <?php
 // Load all cards
-$json  = file_get_contents(__DIR__ . '/data/cards.json');
+$json  = file_get_contents(__DIR__ . '/../data/cards.json');
 $cards = json_decode($json, true);
 
 // Validate ID parameter
@@ -38,7 +38,7 @@ $assistiveTechs = $card['assistiveTechnologies'];
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= $pageTitle ?></title>
   <meta name="description" content="Inclusive design persona card for <?= htmlspecialchars($card['title']) ?> (<?= htmlspecialchars($card['category']) ?>). Learn about digital challenges, assistive technologies, and design considerations.">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../css/style.css">
 	<link href="https://fonts.googleapis.com" rel="stylesheet">
 </head>
 <body>
