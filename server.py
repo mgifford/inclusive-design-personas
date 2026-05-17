@@ -205,7 +205,7 @@ def render_card(card_id, *, static=False):
         )
         related_section = f"""
       <section class="card-section related-cards-section" aria-labelledby="related-heading">
-        <h3 id="related-heading">Related {e(card['category'])} Cards</h3>
+        <h2 id="related-heading">Related {e(card['category'])} Cards</h2>
         <ul class="related-cards-list" role="list">{links}</ul>
       </section>"""
 
@@ -221,7 +221,7 @@ def render_card(card_id, *, static=False):
     if card.get("clinicalExamples"):
         clinical = f"""
       <section class="card-section" aria-labelledby="section-clinical">
-        <h3 id="section-clinical">Clinical Examples</h3>
+        <h2 id="section-clinical">Clinical Examples</h2>
         <p class="clinical-examples">{e(card['clinicalExamples'])}</p>
       </section>"""
 
@@ -246,7 +246,7 @@ def render_card(card_id, *, static=False):
 
         ai_section = f"""
     <aside class="ai-prompt-section no-print" aria-labelledby="ai-prompt-heading">
-      <h3 id="ai-prompt-heading">AI Development Prompt</h3>
+      <h2 id="ai-prompt-heading">AI Development Prompt</h2>
       <p>Incorporate {e(card['title'])} into your AI development with this prompt.</p>{prompt_block}
       <a class="ai-prompt-link"
          href="{e(card['aiPromptUrl'])}"
@@ -287,28 +287,28 @@ def render_card(card_id, *, static=False):
     <article class="card-detail no-print" aria-labelledby="card-heading">
       <header class="card-detail__header">
         <span class="card-detail__category">{e(card['category'])}</span>
-        <h2 id="card-heading">{e(card['title'])}</h2>
+        <h1 id="card-heading">{e(card['title'])}</h1>
         <p class="card-detail__persona-name">Persona: {e(card['name'])}</p>
         <p class="card-detail__backstory">{e(card['backstory'])}</p>
       </header>
 
       <section class="card-section" aria-labelledby="section-condition">
-        <h3 id="section-condition">About This Condition</h3>
+        <h2 id="section-condition">About This Condition</h2>
         <p>{e(card['conditionDescription'])}</p>
       </section>
 
       <section class="card-section" aria-labelledby="section-challenges">
-        <h3 id="section-challenges">Digital Challenges</h3>
+        <h2 id="section-challenges">Digital Challenges</h2>
         <p>{e(card['digitalChallenges'])}</p>
       </section>
 
       <section class="card-section" aria-labelledby="section-assistive">
-        <h3 id="section-assistive">Assistive Technologies</h3>
+        <h2 id="section-assistive">Assistive Technologies</h2>
         <ul class="assistive-tech-list">{tech_items}</ul>
       </section>
 
       <section class="card-section" aria-labelledby="section-design">
-        <h3 id="section-design">Design Considerations</h3>
+        <h2 id="section-design">Design Considerations</h2>
         <p>{e(card['designConsiderations'])}</p>
       </section>
 {clinical}
@@ -373,7 +373,7 @@ def render_card(card_id, *, static=False):
         f"Inclusive design persona card for {card['title']} ({card['category']}). Learn about digital challenges, assistive technologies, and design considerations.",
         body,
         css_href=css_href,
-        header_html=f'<h1><a href="{e(home_href)}">Inclusive Design Persona Cards</a></h1>',
+        header_html=f'<p><a href="{e(home_href)}">Inclusive Design Persona Cards</a></p>',
         footer_html=footer_html,
         extra_scripts=copy_script,
     )
