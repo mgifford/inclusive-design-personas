@@ -91,12 +91,12 @@
           ].join('');
         }).join('');
 
-        root.innerHTML = sections || '<p>No persona cards found.</p>';
+        root.innerHTML = sections || '<p role="status">No persona cards found.</p>';
       }
 
       fetch('data/cards.json')
         .then(function (response) {
-          if (!response.ok) throw new Error('Unable to load cards data (HTTP ' + response.status + '). Please ensure data/cards.json exists and is accessible.');
+          if (!response.ok) throw new Error('Unable to load cards data (HTTP ' + response.status + '). Please check network access and verify data/cards.json exists and is accessible.');
           return response.text();
         })
         .then(function (text) {
