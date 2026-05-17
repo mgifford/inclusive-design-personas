@@ -96,14 +96,14 @@
 
       fetch('data/cards.json')
         .then(function (response) {
-          if (!response.ok) throw new Error('Unable to load cards data (HTTP ' + response.status + '). Please check network access and verify data/cards.json exists and is accessible.');
+          if (!response.ok) throw new Error('Failed to load persona cards (HTTP ' + response.status + ').');
           return response.text();
         })
         .then(function (text) {
           try {
             return JSON.parse(text);
           } catch (error) {
-            throw new Error('Cards data is not valid JSON: ' + error.message);
+            throw new Error('Failed to load persona cards due to invalid data format.');
           }
         })
         .then(renderCards)
