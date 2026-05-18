@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading… — Inclusive Design Persona Cards</title>
+  <meta name="description" content="Inclusive design persona card detail view.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Apply stored theme before first paint to prevent flash
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'dark' || t === 'light') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <div class="header-text">
+        <h1><a href="index.html">Inclusive Design Persona Cards</a></h1>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode">
+        <svg class="sun-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18">
+          <circle cx="12" cy="12" r="5" fill="currentColor"/>
+          <path stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"
+                d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+        </svg>
+        <svg class="moon-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18">
+          <path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div id="persona-root">
+      <p role="status">Loading persona…</p>
+    </div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <p>Inclusive Design Persona Cards &mdash; Helping teams build accessible, human-centered products.</p>
+  </footer>
+
+  <script>
+    (function () {
+      function escapeHtml(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function catId(name) {
+        return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      }
+
+      function robohashUrl(card, size) {
+        var seed = (card.name || '') + '-' + (card.title || '') + '-' + (card.id || '');
+        return 'https://robohash.org/' + encodeURIComponent(seed) + '.png?size=' + size + '&set=set1&bgset=bg1';
+      }
+
+      function getParam(name) {
+        var params = new URLSearchParams(window.location.search);
+        return params.get(name);
+      }
+
+      function renderPersona(card, allCards) {
+        var relatedCards = allCards.filter(function (c) {
+          return c.category === card.category && c.id !== card.id;
+        });
+
+        var avatarUrl = escapeHtml(robohashUrl(card, '280x280'));
+        var safeCategory = escapeHtml(card.category);
+        var safeTitle    = escapeHtml(card.title);
+        var safeName     = escapeHtml(card.name);
+        var catAnchor    = escapeHtml(catId(card.category));
+
+        // Update page title and meta description
+        document.title = safeTitle + ' — Inclusive Design Persona Cards';
+        var metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) {
+          metaDesc.setAttribute('content',
+            'Inclusive design persona: ' + card.title + ' (' + card.category + '). ' +
+            'Digital challenges, assistive technologies, and design considerations.');
+        }
+
+        // Assistive technologies list items
+        var techItems = (card.assistiveTechnologies || []).map(function (tech) {
+          return '<li>' + escapeHtml(tech.trim()) + '</li>';
+        }).join('');
+
+        // Related cards list
+        var relatedHtml = '';
+        if (relatedCards.length) {
+          var relatedItems = relatedCards.map(function (r) {
+            return '<li><a href="persona.html?id=' + escapeHtml(r.id) + '">' +
+              escapeHtml(r.title) +
+              '<span class="visually-hidden"> \u2014 ' + escapeHtml(r.name) + '</span>' +
+              '</a></li>';
+          }).join('');
+          relatedHtml = [
+            '<section class="card-section related-cards-section" aria-labelledby="related-heading">',
+            '  <h2 id="related-heading">Related ' + safeCategory + ' Personas</h2>',
+            '  <ul class="related-cards-list" role="list">' + relatedItems + '</ul>',
+            '</section>'
+          ].join('');
+        }
+
+        // Clinical examples (optional)
+        var clinicalHtml = '';
+        if (card.clinicalExamples) {
+          clinicalHtml = [
+            '<section class="card-section" aria-labelledby="section-clinical">',
+            '  <h2 id="section-clinical">Clinical Examples</h2>',
+            '  <p class="clinical-examples">' + escapeHtml(card.clinicalExamples) + '</p>',
+            '</section>'
+          ].join('');
+        }
+
+        // AI prompt section (optional)
+        var aiHtml = '';
+        if (card.aiPromptUrl || card.aiPrompt) {
+          var promptBlock = '';
+          if (card.aiPrompt) {
+            promptBlock = [
+              '<div class="ai-prompt-wrapper">',
+              '  <div class="ai-prompt-toolbar">',
+              '    <span class="ai-prompt-label">Prompt</span>',
+              '    <button class="copy-prompt-btn" type="button" id="copy-btn"',
+              '            aria-label="Copy AI prompt text to clipboard">',
+              '      <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24"',
+              '           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+              '        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>',
+              '        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>',
+              '      </svg>',
+              '      Copy prompt',
+              '    </button>',
+              '  </div>',
+              '  <pre class="ai-prompt-code"><code id="prompt-text">' + escapeHtml(card.aiPrompt) + '</code></pre>',
+              '</div>'
+            ].join('');
+          }
+          var promptLink = '';
+          if (card.aiPromptUrl) {
+            promptLink = '<a class="ai-prompt-link no-print"' +
+              ' href="' + escapeHtml(card.aiPromptUrl) + '"' +
+              ' target="_blank" rel="noopener noreferrer"' +
+              ' aria-label="Use the ' + safeTitle + ' AI prompt (opens in new tab)">' +
+              'Use the ' + safeTitle + ' AI Prompt \u2197' +
+              '</a>';
+          }
+          aiHtml = [
+            '<aside class="ai-prompt-section no-print" aria-labelledby="ai-prompt-heading">',
+            '  <h2 id="ai-prompt-heading">AI Development Prompt</h2>',
+            '  <p>Use this prompt to incorporate the ' + safeTitle + ' persona into AI-assisted design and development.</p>',
+            promptBlock,
+            promptLink,
+            '</aside>'
+          ].join('');
+        }
+
+        // Print layout related text
+        var printRelated = '';
+        if (relatedCards.length) {
+          var relTitles = relatedCards.map(function (r) { return r.title; }).join(', ');
+          printRelated = '<div class="print-related"><strong>Related:</strong> ' + escapeHtml(relTitles) + '</div>';
+        }
+        var printTechItems = (card.assistiveTechnologies || []).map(function (tech) {
+          return '<li>' + escapeHtml(tech.trim()) + '</li>';
+        }).join('');
+        var printAiUrl = card.aiPromptUrl
+          ? '<h3>AI Development Prompt</h3><p class="print-ai-url">' + escapeHtml(card.aiPromptUrl) + '</p>'
+          : '';
+
+        var html = [
+          // Breadcrumb
+          '<nav class="breadcrumb no-print" aria-label="Breadcrumb">',
+          '  <ol>',
+          '    <li><a href="index.html">All Personas</a></li>',
+          '    <li><a href="index.html#cat-' + catAnchor + '">' + safeCategory + '</a></li>',
+          '    <li><span aria-current="page">' + safeTitle + '</span></li>',
+          '  </ol>',
+          '</nav>',
+
+          // Print button
+          '<button class="print-btn no-print" type="button" id="print-btn">',
+          '  <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24"',
+          '       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+          '    <polyline points="6 9 6 2 18 2 18 9"></polyline>',
+          '    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>',
+          '    <rect x="6" y="14" width="12" height="8"></rect>',
+          '  </svg>',
+          '  Print this card',
+          '</button>',
+
+          // Screen view: full card detail
+          '<article class="card-detail no-print" aria-labelledby="card-heading">',
+          '  <header class="card-detail__header">',
+          '    <div class="card-detail__hero">',
+          '      <img class="card-detail__avatar"',
+          '           src="' + avatarUrl + '"',
+          '           alt="Persona avatar for ' + safeName + '"',
+          '           width="112" height="112">',
+          '      <div class="card-detail__hero-text">',
+          '        <span class="card-detail__category">' + safeCategory + '</span>',
+          '        <h2 id="card-heading">' + safeTitle + '</h2>',
+          '        <p class="card-detail__persona-name">Persona: ' + safeName + '</p>',
+          '      </div>',
+          '    </div>',
+          '    <p class="card-detail__backstory">' + escapeHtml(card.backstory) + '</p>',
+          '  </header>',
+
+          '  <section class="card-section" aria-labelledby="section-condition">',
+          '    <h2 id="section-condition">About This Condition</h2>',
+          '    <p>' + escapeHtml(card.conditionDescription) + '</p>',
+          '  </section>',
+
+          '  <section class="card-section" aria-labelledby="section-challenges">',
+          '    <h2 id="section-challenges">Digital Challenges</h2>',
+          '    <p>' + escapeHtml(card.digitalChallenges) + '</p>',
+          '  </section>',
+
+          '  <section class="card-section" aria-labelledby="section-assistive">',
+          '    <h2 id="section-assistive">Assistive Technologies</h2>',
+          '    <ul class="assistive-tech-list">' + techItems + '</ul>',
+          '  </section>',
+
+          '  <section class="card-section" aria-labelledby="section-design">',
+          '    <h2 id="section-design">Design Considerations</h2>',
+          '    <p>' + escapeHtml(card.designConsiderations) + '</p>',
+          '  </section>',
+
+          clinicalHtml,
+          relatedHtml,
+
+          '</article>',
+
+          aiHtml,
+
+          // Print-only layout
+          '<div class="print-only" role="presentation">',
+          '  <div class="print-card-wrapper">',
+          '    <div class="print-card-front">',
+          '      <span class="print-category">' + safeCategory + '</span>',
+          '      <h1>' + safeTitle + '</h1>',
+          '      <p class="print-name">' + safeName + '</p>',
+          '      <p class="print-backstory">' + escapeHtml(card.backstory) + '</p>',
+          '      <p class="print-condition">' + escapeHtml(card.conditionDescription) + '</p>',
+          printRelated,
+          '    </div>',
+          '    <div class="print-card-back">',
+          '      <h3>Digital Challenges</h3>',
+          '      <p>' + escapeHtml(card.digitalChallenges) + '</p>',
+          '      <h3>Assistive Technologies</h3>',
+          '      <ul>' + printTechItems + '</ul>',
+          '      <h3>Design Considerations</h3>',
+          '      <p>' + escapeHtml(card.designConsiderations) + '</p>',
+          printAiUrl,
+          '    </div>',
+          '  </div>',
+          '  <span class="print-fold-guide">Fold here \u2014 double-sided card</span>',
+          '</div>'
+        ].join('');
+
+        document.getElementById('persona-root').innerHTML = html;
+
+        // Wire up print button
+        var printBtn = document.getElementById('print-btn');
+        if (printBtn) {
+          printBtn.addEventListener('click', function () { window.print(); });
+        }
+
+        // Wire up copy prompt button
+        var copyBtn = document.getElementById('copy-btn');
+        var promptText = document.getElementById('prompt-text');
+        if (copyBtn && promptText) {
+          copyBtn.addEventListener('click', function () {
+            var text = promptText.textContent || '';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(function () {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(function () {
+                  copyBtn.innerHTML = [
+                    '<svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24"',
+                    '     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+                    '  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>',
+                    '  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>',
+                    '</svg> Copy prompt'
+                  ].join('');
+                }, 2000);
+              });
+            }
+          });
+        }
+      }
+
+      function renderNotFound(id) {
+        document.title = 'Persona not found — Inclusive Design Persona Cards';
+        document.getElementById('persona-root').innerHTML =
+          '<p role="alert">No persona found with id \u201c' + escapeHtml(id) + '\u201d. ' +
+          '<a href="index.html">View all personas</a>.</p>';
+      }
+
+      // ── Bootstrap ─────────────────────────────────────────
+      var requestedId = getParam('id');
+      if (!requestedId) {
+        renderNotFound('(none)');
+      } else {
+        fetch('data/cards.json')
+          .then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.text();
+          })
+          .then(function (text) {
+            var cards;
+            try { cards = JSON.parse(text); } catch (e) {
+              throw new Error('Invalid data format.');
+            }
+            var numId = parseInt(requestedId, 10);
+            var card = cards.find(function (c) {
+              return c.id === numId;
+            });
+            if (!card) {
+              renderNotFound(requestedId);
+            } else {
+              renderPersona(card, cards);
+            }
+          })
+          .catch(function (err) {
+            document.getElementById('persona-root').innerHTML =
+              '<p role="alert">Could not load persona data: ' + escapeHtml(err.message) + '</p>';
+          });
+      }
+    })();
+  </script>
+
+  <script>
+    // Theme toggle
+    (function () {
+      var toggle = document.getElementById('theme-toggle');
+      if (!toggle) return;
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function getStoredTheme() {
+        try { return localStorage.getItem('theme'); } catch (e) { return null; }
+      }
+      function setStoredTheme(t) {
+        try { localStorage.setItem('theme', t); } catch (e) {}
+      }
+
+      var userOverride = !!getStoredTheme();
+      var current = getStoredTheme() || (mq.matches ? 'dark' : 'light');
+
+      function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        toggle.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+
+      toggle.addEventListener('click', function () {
+        current = current === 'light' ? 'dark' : 'light';
+        userOverride = true;
+        setStoredTheme(current);
+        applyTheme(current);
+      });
+
+      mq.addEventListener('change', function (e) {
+        if (!userOverride) {
+          current = e.matches ? 'dark' : 'light';
+          applyTheme(current);
+        }
+      });
+
+      applyTheme(current);
+    })();
+  </script>
+</body>
+</html>

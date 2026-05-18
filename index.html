@@ -6,13 +6,36 @@
   <title>Inclusive Design Persona Cards</title>
   <meta name="description" content="Inclusive design personas covering disability, chronic conditions, and situational impairments.">
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Apply stored theme before first paint to prevent flash
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'dark' || t === 'light') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <header class="site-header" role="banner">
     <div class="header-inner">
-      <h1>Inclusive Design Persona Cards</h1>
-      <p class="tagline">40 personas. Every kind of user. Better products for everyone.</p>
+      <div class="header-text">
+        <h1>Inclusive Design Persona Cards</h1>
+        <p class="tagline">40 personas. Every kind of user. Better products for everyone.</p>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode">
+        <svg class="sun-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18">
+          <circle cx="12" cy="12" r="5" fill="currentColor"/>
+          <path stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"
+                d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+        </svg>
+        <svg class="moon-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18">
+          <path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -87,6 +110,12 @@
               '    <div class="card-preview__body">',
               '      <p class="card-preview__backstory">' + escapeHtml(card.backstory) + '</p>',
               '    </div>',
+              '    <footer class="card-preview__footer">',
+              '      <a class="card-link" href="persona.html?id=' + safeId + '">',
+              '        View full persona',
+              '        <span class="visually-hidden"> for ' + escapeHtml(card.title) + ' \u2014 ' + escapeHtml(card.name) + '</span>',
+              '      </a>',
+              '    </footer>',
               '  </article>',
               '</li>'
             ].join('');
@@ -119,6 +148,47 @@
         .catch(function (error) {
           document.getElementById('cards-root').innerHTML = '<p role="alert">' + escapeHtml(error.message) + '</p>';
         });
+    })();
+  </script>
+
+  <script>
+    // Theme toggle
+    (function () {
+      var toggle = document.getElementById('theme-toggle');
+      if (!toggle) return;
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function getStoredTheme() {
+        try { return localStorage.getItem('theme'); } catch (e) { return null; }
+      }
+      function setStoredTheme(t) {
+        try { localStorage.setItem('theme', t); } catch (e) {}
+      }
+
+      var userOverride = !!getStoredTheme();
+      var current = getStoredTheme() || (mq.matches ? 'dark' : 'light');
+
+      function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        toggle.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+
+      toggle.addEventListener('click', function () {
+        current = current === 'light' ? 'dark' : 'light';
+        userOverride = true;
+        setStoredTheme(current);
+        applyTheme(current);
+      });
+
+      // Follow OS preference changes only if user has not manually overridden
+      mq.addEventListener('change', function (e) {
+        if (!userOverride) {
+          current = e.matches ? 'dark' : 'light';
+          applyTheme(current);
+        }
+      });
+
+      applyTheme(current);
     })();
   </script>
 </body>

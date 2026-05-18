@@ -16,12 +16,82 @@ html {
   scroll-behavior: smooth;
 }
 
+/* --- Color Tokens ------------------------------------------ */
+:root {
+  --c-text:          #000;
+  --c-text-muted:    #333;
+  --c-bg:            #fff;
+  --c-bg-subtle:     #f6f3f3;
+  --c-bg-warm:       #fffbed;
+  --c-border:        #000;
+  --c-header-bg:     #000;
+  --c-header-text:   #fff;
+  --c-header-accent: #fffbed;
+  --c-accent-bg:     #000;
+  --c-accent-text:   #fff;
+  --c-focus:         #000;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-text:          #f0ede8;
+    --c-text-muted:    #b8b0a8;
+    --c-bg:            #121212;
+    --c-bg-subtle:     #1e1c1c;
+    --c-bg-warm:       #2e2b1a;
+    --c-border:        #888;
+    --c-header-bg:     #0a0a0a;
+    --c-header-text:   #f0ede8;
+    --c-header-accent: #d4c860;
+    --c-accent-bg:     #1a1a1a;
+    --c-accent-text:   #f0ede8;
+    --c-focus:         #f0c040;
+  }
+}
+
+[data-theme="dark"] {
+  --c-text:          #f0ede8;
+  --c-text-muted:    #b8b0a8;
+  --c-bg:            #121212;
+  --c-bg-subtle:     #1e1c1c;
+  --c-bg-warm:       #2e2b1a;
+  --c-border:        #888;
+  --c-header-bg:     #0a0a0a;
+  --c-header-text:   #f0ede8;
+  --c-header-accent: #d4c860;
+  --c-accent-bg:     #1a1a1a;
+  --c-accent-text:   #f0ede8;
+  --c-focus:         #f0c040;
+}
+
+[data-theme="light"] {
+  --c-text:          #000;
+  --c-text-muted:    #333;
+  --c-bg:            #fff;
+  --c-bg-subtle:     #f6f3f3;
+  --c-bg-warm:       #fffbed;
+  --c-border:        #000;
+  --c-header-bg:     #000;
+  --c-header-text:   #fff;
+  --c-header-accent: #fffbed;
+  --c-accent-bg:     #000;
+  --c-accent-text:   #fff;
+  --c-focus:         #000;
+}
+
+@media (forced-colors: active) {
+  :root {
+    --c-focus:  Highlight;
+    --c-border: ButtonText;
+  }
+}
+
 body {
   font-family: 'Atkinson Hyperlegible', sans-serif;
   font-size: 1.125rem;
   line-height: 1.6;
-  color: #000;
-  background-color: #fff;
+  color: var(--c-text);
+  background-color: var(--c-bg);
 }
 
 /* --- Visually Hidden (accessible text) -------------------- */
@@ -43,8 +113,8 @@ body {
   top: -100%;
   left: 0;
   padding: 0.75rem 1.5rem;
-  background: #000;
-  color: #fff;
+  background: var(--c-accent-bg);
+  color: var(--c-accent-text);
   font-weight: bold;
   font-size: 1rem;
   text-decoration: none;
@@ -58,26 +128,71 @@ body {
 
 /* --- Focus Styles (WCAG 2.2 AA) ---------------------------- */
 :focus-visible {
-  outline: 3px solid #000;
+  outline: 3px solid var(--c-focus);
   outline-offset: 3px;
 }
 
 a:focus-visible {
-  outline: 3px solid #000;
+  outline: 3px solid var(--c-focus);
   outline-offset: 3px;
   border-radius: 2px;
 }
 
+/* --- Theme Toggle Button ----------------------------------- */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: transparent;
+  border: 1px solid var(--c-header-text);
+  border-radius: 2px;
+  color: var(--c-header-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--c-header-text);
+  color: var(--c-header-bg);
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid var(--c-header-accent);
+  outline-offset: 2px;
+}
+
+/* Show moon in light mode (action = switch to dark) */
+.theme-toggle .sun-icon  { display: none; }
+.theme-toggle .moon-icon { display: block; }
+
+/* Show sun in dark mode (action = switch to light) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .sun-icon  { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle .moon-icon { display: none; }
+}
+
+[data-theme="dark"] .theme-toggle .sun-icon  { display: block; }
+[data-theme="dark"] .theme-toggle .moon-icon { display: none; }
+[data-theme="light"] .theme-toggle .sun-icon  { display: none; }
+[data-theme="light"] .theme-toggle .moon-icon { display: block; }
+
 /* --- Layout ------------------------------------------------- */
 .site-header {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-header-bg);
+  color: var(--c-header-text);
   padding: 2rem 1.5rem;
 }
 
 .site-header .header-inner {
   max-width: 75rem;
   margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .site-header h1 {
@@ -89,21 +204,21 @@ a:focus-visible {
 
 .site-header .tagline {
   font-size: 1rem;
-  color: #fffbed;
+  color: var(--c-header-accent);
   font-style: italic;
 }
 
 .site-header a {
-  color: #fffbed;
+  color: var(--c-header-accent);
   text-decoration: underline;
 }
 
 .site-header a:hover {
-  color: #fff;
+  color: var(--c-header-text);
 }
 
 .site-header a:focus-visible {
-  outline-color: #fffbed;
+  outline-color: var(--c-header-accent);
 }
 
 main {
@@ -113,8 +228,8 @@ main {
 }
 
 .site-footer {
-  background-color: #f6f3f3;
-  border-top: 2px solid #000;
+  background-color: var(--c-bg-subtle);
+  border-top: 2px solid var(--c-border);
   padding: 1.5rem;
   text-align: center;
   font-size: 0.9rem;
@@ -126,8 +241,8 @@ main {
   max-width: 50rem;
   margin-bottom: 3rem;
   padding: 1.5rem;
-  background-color: #fffbed;
-  border-left: 4px solid #000;
+  background-color: var(--c-bg-warm);
+  border-left: 4px solid var(--c-border);
 }
 
 .page-intro p {
@@ -144,8 +259,8 @@ main {
   font-size: 1.5rem;
   font-weight: bold;
   padding: 0.5rem 1rem;
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-accent-bg);
+  color: var(--c-accent-text);
   margin-bottom: 1.25rem;
   border-radius: 2px;
 }
@@ -168,21 +283,21 @@ main {
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: #fff;
-  border: 2px solid #000;
+  background-color: var(--c-bg);
+  border: 2px solid var(--c-border);
   border-radius: 4px;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
 }
 
 .card-preview:hover {
-  box-shadow: 4px 4px 0 #000;
+  box-shadow: 4px 4px 0 var(--c-border);
 }
 
 .card-preview__header {
-  background-color: #f6f3f3;
+  background-color: var(--c-bg-subtle);
   padding: 0.875rem 1rem 0.75rem;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid var(--c-border);
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.75rem;
@@ -192,9 +307,9 @@ main {
 .card-preview__avatar {
   width: 4.5rem;
   height: 4.5rem;
-  border: 2px solid #000;
+  border: 2px solid var(--c-border);
   border-radius: 50%;
-  background-color: #fff;
+  background-color: var(--c-bg);
 }
 
 .card-preview__title-group {
@@ -207,9 +322,9 @@ main {
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background-color: #fffbed;
-  color: #000;
-  border: 1px solid #000;
+  background-color: var(--c-bg-warm);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
   padding: 0.2rem 0.6rem;
   border-radius: 2px;
   margin-bottom: 0.5rem;
@@ -224,7 +339,7 @@ main {
 .card-preview__name {
   font-size: 0.9rem;
   font-style: italic;
-  color: #333;
+  color: var(--c-text-muted);
 }
 
 .card-preview__body {
@@ -235,31 +350,31 @@ main {
 .card-preview__backstory {
   font-size: 0.9rem;
   line-height: 1.55;
-  color: #222;
+  color: var(--c-text-muted);
 }
 
 .card-preview__footer {
   padding: 0.75rem 1rem;
-  border-top: 1px solid #000;
-  background-color: #f6f3f3;
+  border-top: 1px solid var(--c-border);
+  background-color: var(--c-bg-subtle);
 }
 
 .card-link {
   display: inline-block;
   font-size: 0.9rem;
   font-weight: bold;
-  color: #000;
+  color: var(--c-text);
   text-decoration: underline;
   padding: 0.35rem 0.75rem;
-  border: 2px solid #000;
+  border: 2px solid var(--c-border);
   border-radius: 2px;
-  background-color: #fffbed;
+  background-color: var(--c-bg-warm);
   transition: background-color 0.15s ease;
 }
 
 .card-link:hover {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-accent-bg);
+  color: var(--c-accent-text);
   text-decoration: none;
 }
 
@@ -268,7 +383,7 @@ main {
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid var(--c-border);
 }
 
 .breadcrumb ol {
@@ -282,11 +397,11 @@ main {
 .breadcrumb li + li::before {
   content: "›";
   margin-right: 0.25rem;
-  color: #000;
+  color: var(--c-text);
 }
 
 .breadcrumb a {
-  color: #000;
+  color: var(--c-text);
   text-decoration: underline;
   font-weight: bold;
 }
@@ -297,7 +412,7 @@ main {
 
 .breadcrumb [aria-current="page"] {
   font-weight: normal;
-  color: #333;
+  color: var(--c-text-muted);
 }
 
 /* --- Card Detail Page -------------------------------------- */
@@ -308,7 +423,7 @@ main {
 .card-detail__header {
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid var(--c-border);
 }
 
 .card-detail__hero {
@@ -320,9 +435,9 @@ main {
 .card-detail__avatar {
   width: 7rem;
   height: 7rem;
-  border: 2px solid #000;
+  border: 2px solid var(--c-border);
   border-radius: 50%;
-  background-color: #fff;
+  background-color: var(--c-bg);
   flex-shrink: 0;
 }
 
@@ -336,8 +451,8 @@ main {
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-accent-bg);
+  color: var(--c-accent-text);
   padding: 0.3rem 0.75rem;
   border-radius: 2px;
   margin-bottom: 0.75rem;
@@ -352,14 +467,14 @@ main {
 .card-detail__persona-name {
   font-size: 1rem;
   font-style: italic;
-  color: #333;
+  color: var(--c-text-muted);
 }
 
 .card-detail__backstory {
   margin-top: 1rem;
   padding: 1rem 1.25rem;
-  background-color: #f6f3f3;
-  border-left: 4px solid #000;
+  background-color: var(--c-bg-subtle);
+  border-left: 4px solid var(--c-border);
   font-size: 1rem;
   line-height: 1.65;
 }
@@ -368,7 +483,7 @@ main {
 .card-section {
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid var(--c-border);
 }
 
 .card-section:last-of-type {
@@ -382,7 +497,7 @@ main {
   letter-spacing: 0.06em;
   margin-bottom: 0.75rem;
   padding: 0.4rem 0;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid var(--c-border);
   display: inline-block;
 }
 
@@ -395,7 +510,7 @@ main {
 .assistive-tech-list {
   list-style: none;
   padding: 0.75rem 1rem;
-  background-color: #f6f3f3;
+  background-color: var(--c-bg-subtle);
   border-radius: 2px;
   margin-top: 0.25rem;
 }
@@ -403,7 +518,7 @@ main {
 .assistive-tech-list li {
   display: inline;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--c-text-muted);
 }
 
 .assistive-tech-list li + li::before {
@@ -414,16 +529,16 @@ main {
 .clinical-examples {
   font-size: 0.9rem;
   font-style: italic;
-  color: #333;
-  background-color: #f6f3f3;
+  color: var(--c-text-muted);
+  background-color: var(--c-bg-subtle);
   padding: 0.75rem 1rem;
   border-radius: 2px;
 }
 
 /* AI Prompt section */
 .ai-prompt-section {
-  background-color: #fffbed;
-  border: 2px solid #000;
+  background-color: var(--c-bg-warm);
+  border: 2px solid var(--c-border);
   border-radius: 4px;
   padding: 1.25rem 1.5rem;
   margin-bottom: 2rem;
@@ -452,8 +567,8 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-accent-bg);
+  color: var(--c-accent-text);
   padding: 0.4rem 0.75rem;
   border-radius: 2px 2px 0 0;
 }
@@ -472,9 +587,9 @@ main {
   gap: 0.4rem;
   font-size: 0.8rem;
   font-weight: bold;
-  color: #fff;
+  color: var(--c-accent-text);
   background: transparent;
-  border: 1px solid #fff;
+  border: 1px solid var(--c-accent-text);
   border-radius: 2px;
   padding: 0.25rem 0.6rem;
   cursor: pointer;
@@ -482,12 +597,12 @@ main {
 }
 
 .copy-prompt-btn:hover {
-  background-color: #fff;
-  color: #000;
+  background-color: var(--c-accent-text);
+  color: var(--c-accent-bg);
 }
 
 .copy-prompt-btn:focus-visible {
-  outline: 3px solid #fffbed;
+  outline: 3px solid var(--c-header-accent);
   outline-offset: 2px;
 }
 
@@ -498,8 +613,8 @@ main {
   line-height: 1.65;
   white-space: pre-wrap;
   word-break: break-word;
-  background-color: #fff;
-  border: 1px solid #000;
+  background-color: var(--c-bg);
+  border: 1px solid var(--c-border);
   border-top: none;
   border-radius: 0 0 2px 2px;
   padding: 1rem 1.25rem;
@@ -519,25 +634,25 @@ main {
   display: inline-block;
   font-weight: bold;
   font-size: 1rem;
-  color: #000;
+  color: var(--c-text);
   text-decoration: underline;
   padding: 0.6rem 1.25rem;
-  border: 2px solid #000;
+  border: 2px solid var(--c-border);
   border-radius: 2px;
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-accent-bg);
+  color: var(--c-accent-text);
   text-decoration: none;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .ai-prompt-link:hover {
-  background-color: #fff;
-  color: #000;
+  background-color: var(--c-bg);
+  color: var(--c-text);
   text-decoration: underline;
 }
 
 .ai-prompt-link:focus-visible {
-  outline: 3px solid #000;
+  outline: 3px solid var(--c-focus);
   outline-offset: 3px;
 }
 
@@ -550,7 +665,7 @@ main {
 .related-cards {
   margin-top: 3rem;
   padding-top: 1.5rem;
-  border-top: 2px solid #000;
+  border-top: 2px solid var(--c-border);
 }
 
 .related-cards h2 {
@@ -569,23 +684,23 @@ main {
 .related-cards-list a {
   display: inline-block;
   padding: 0.5rem 1rem;
-  border: 2px solid #000;
+  border: 2px solid var(--c-border);
   border-radius: 2px;
-  color: #000;
+  color: var(--c-text);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: bold;
-  background-color: #f6f3f3;
+  background-color: var(--c-bg-subtle);
   transition: background-color 0.15s ease;
 }
 
 .related-cards-list a:hover {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-accent-bg);
+  color: var(--c-accent-text);
 }
 
 .related-cards-list a[aria-current="page"] {
-  background-color: #fffbed;
+  background-color: var(--c-bg-warm);
   border-style: dashed;
   cursor: default;
   pointer-events: none;
@@ -600,9 +715,9 @@ main {
   padding: 0.6rem 1.25rem;
   font-size: 1rem;
   font-weight: bold;
-  color: #000;
-  background-color: #f6f3f3;
-  border: 2px solid #000;
+  color: var(--c-text);
+  background-color: var(--c-bg-subtle);
+  border: 2px solid var(--c-border);
   border-radius: 2px;
   cursor: pointer;
   text-decoration: none;
@@ -610,8 +725,8 @@ main {
 }
 
 .print-btn:hover {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-accent-bg);
+  color: var(--c-accent-text);
 }
 
 /* --- Responsive -------------------------------------------- */
