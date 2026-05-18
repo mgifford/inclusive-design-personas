@@ -130,6 +130,15 @@
         }).join('');
 
         root.innerHTML = sections || '<p role="status">No persona cards found.</p>';
+
+        // If URL has a hash, scroll to it after rendering
+        if (window.location.hash) {
+          var anchorId = window.location.hash.substring(1); // Remove the '#'
+          var target = document.getElementById(anchorId);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
       }
 
       fetch('data/cards.json')
