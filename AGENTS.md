@@ -16,6 +16,7 @@ Load the relevant skill before working on any topic area:
 - **Manual accessibility testing**: read `.github/skills/manual-testing/SKILL.md`
 - **Dynamic content / live region announcements**: read `.github/skills/aria-live-regions/SKILL.md`
 - **Light/dark mode and colour theme switching**: read `.github/skills/light-dark-mode/SKILL.md`
+- **CI/CD accessibility testing**: read `.github/skills/ci-cd/SKILL.md`
 
 ## Non-Negotiable Requirements
 

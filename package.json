@@ -1,0 +1,16 @@
+{
+  "name": "inclusive-design-personas",
+  "version": "1.0.0",
+  "description": "Inclusive design personas for accessibility-focused product teams",
+  "scripts": {
+    "test:a11y": "playwright test",
+    "test:lighthouse": "lhci autorun",
+    "serve": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.8.0",
+    "@lhci/cli": "^0.12.0",
+    "@playwright/test": "^1.40.0",
+    "axe-playwright": "^1.2.3"
+  }
+}
