@@ -506,6 +506,25 @@ main {
   font-size: 1rem;
 }
 
+.card-reference-list {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.card-reference-list li {
+  margin-bottom: 0.5rem;
+}
+
+.card-reference-list a {
+  color: var(--c-text);
+  text-decoration: underline;
+}
+
+.card-reference-list a:hover {
+  text-decoration: none;
+}
+
 /* Assistive Technologies list — inline text block, same treatment as clinical examples */
 .assistive-tech-list {
   list-style: none;

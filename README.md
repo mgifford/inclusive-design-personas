@@ -18,6 +18,7 @@ Use the cards during design critiques, sprint planning, usability reviews, or AI
 - **WCAG 2.2 AA compliant** — semantic HTML, proper landmark regions, skip navigation, keyboard accessible, minimum contrast ratios of 11:1
 - **Printable double-sided cards** — fold-over layout sized for a half sheet of letter paper
 - **Built-in AI audit prompts** — each card includes a pre-written prompt mapped to WCAG 2.2 criteria for use with AI development tools
+- **Curated reference links** — each disability category includes trusted external resources for deeper design guidance
 - **Deterministic persona avatars** — cards use generated RoboHash images for quick visual distinction
 - **No frameworks** — pure Python (build tool), HTML, CSS, and JSON; no npm, no React
 - **Responsive layout** — horizontal card grid on desktop, vertical stack on mobile
@@ -90,7 +91,8 @@ Inclusive Design Persona Cards/
 ├── css/
 │   └── style.css      # All styles, including print media query
 └── data/
-    └── cards.json     # Source data — 40 persona cards
+    ├── cards.json      # Source data — 40 persona cards
+    └── references.json # Curated external references by category
 ```
 
 ---
@@ -113,6 +115,8 @@ Each entry in `data/cards.json` contains the following fields:
 | `aiPrompt` | string | Pre-written prompt for AI-assisted accessibility audits |
 | `clinicalExamples` | string | Related clinical or diagnostic examples |
 | `aiPromptUrl` | string | External URL to the full hosted prompt |
+
+Category reference links are maintained in `data/references.json` and displayed on each persona card page.
 
 ### Example entry
 
@@ -140,7 +144,7 @@ Each entry in `data/cards.json` contains the following fields:
 Each card page includes a **print-ready foldable layout** optimized for letter paper (8.5" × 11", portrait):
 
 - **Front panel** — category, title, persona name, backstory, condition description, and related cards
-- **Back panel** — digital challenges, assistive technologies, design considerations, and the AI prompt URL
+- **Back panel** — digital challenges, assistive technologies, and design considerations
 
 To print: open any card page, click **Print this card**, and print at 100% scale with default margins. Fold the right panel behind the left to create a double-sided card.
 
@@ -168,6 +172,7 @@ GitHub Actions automatically builds and deploys the static site from `main` usin
 
 - `.github/workflows/deploy-pages.yml`
 - `python3 server.py --build --output dist`
+- `.github/workflows/link-validation.yml` for PR/push link checking on reference URLs
 
 The workflow uploads `dist/` as the Pages artifact and publishes it to GitHub Pages.
 

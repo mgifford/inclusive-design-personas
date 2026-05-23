@@ -75,7 +75,7 @@
         return params.get(name);
       }
 
-      function renderPersona(card, allCards) {
+      function renderPersona(card, allCards, referencesByCategory) {
         var relatedCards = allCards.filter(function (c) {
           return c.category === card.category && c.id !== card.id;
         });
@@ -124,6 +124,25 @@
             '<section class="card-section" aria-labelledby="section-clinical">',
             '  <h2 id="section-clinical">Clinical Examples</h2>',
             '  <p class="clinical-examples">' + escapeHtml(card.clinicalExamples) + '</p>',
+            '</section>'
+          ].join('');
+        }
+
+        // Reference links
+        var referenceHtml = '';
+        var references = (referencesByCategory && referencesByCategory[card.category]) || [];
+        if (references.length) {
+          var referenceItems = references.map(function (reference) {
+            return '<li><a href="' + escapeHtml(reference.url) + '" target="_blank" rel="noopener noreferrer">' +
+              escapeHtml(reference.label) +
+              '<span class="visually-hidden"> (opens in new tab)</span>' +
+              '</a></li>';
+          }).join('');
+          referenceHtml = [
+            '<section class="card-section card-references-section no-print" aria-labelledby="section-references">',
+            '  <h2 id="section-references">Further Reading</h2>',
+            '  <p>Trusted references for designing with this disability category in mind.</p>',
+            '  <ul class="card-reference-list" role="list">' + referenceItems + '</ul>',
             '</section>'
           ].join('');
         }
@@ -179,10 +198,6 @@
         var printTechItems = (card.assistiveTechnologies || []).map(function (tech) {
           return '<li>' + escapeHtml(tech.trim()) + '</li>';
         }).join('');
-        var printAiUrl = card.aiPromptUrl
-          ? '<h3>AI Development Prompt</h3><p class="print-ai-url">' + escapeHtml(card.aiPromptUrl) + '</p>'
-          : '';
-
         var html = [
           // Breadcrumb
           '<nav class="breadcrumb no-print" aria-label="Breadcrumb">',
@@ -241,6 +256,7 @@
           '    <p>' + escapeHtml(card.designConsiderations) + '</p>',
           '  </section>',
 
+          referenceHtml,
           clinicalHtml,
           relatedHtml,
 
@@ -266,7 +282,6 @@
           '      <ul>' + printTechItems + '</ul>',
           '      <h3>Design Considerations</h3>',
           '      <p>' + escapeHtml(card.designConsiderations) + '</p>',
-          printAiUrl,
           '    </div>',
           '  </div>',
           '  <span class="print-fold-guide">Fold here \u2014 double-sided card</span>',
@@ -317,16 +332,35 @@
       if (!requestedId) {
         renderNotFound('(none)');
       } else {
-        fetch('data/cards.json')
-          .then(function (res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.text();
-          })
-          .then(function (text) {
-            var cards;
-            try { cards = JSON.parse(text); } catch (e) {
-              throw new Error('Invalid data format.');
-            }
+        Promise.all([
+          fetch('data/cards.json')
+            .then(function (res) {
+              if (!res.ok) throw new Error('HTTP ' + res.status);
+              return res.text();
+            })
+            .then(function (text) {
+              try {
+                return JSON.parse(text);
+              } catch (e) {
+                throw new Error('Invalid data format.');
+              }
+            }),
+          fetch('data/references.json')
+            .then(function (res) {
+              if (!res.ok) throw new Error('HTTP ' + res.status);
+              return res.text();
+            })
+            .then(function (text) {
+              try {
+                return JSON.parse(text);
+              } catch (e) {
+                throw new Error('Invalid reference data format.');
+              }
+            })
+        ])
+          .then(function (results) {
+            var cards = results[0];
+            var referencesByCategory = results[1];
             var numId = parseInt(requestedId, 10);
             var card = cards.find(function (c) {
               return c.id === numId;
@@ -334,7 +368,7 @@
             if (!card) {
               renderNotFound(requestedId);
             } else {
-              renderPersona(card, cards);
+              renderPersona(card, cards, referencesByCategory);
             }
           })
           .catch(function (err) {

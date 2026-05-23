@@ -1,0 +1,82 @@
+{
+  "Auditory": [
+    {
+      "label": "W3C WAI: Audio and Video Accessibility",
+      "url": "https://www.w3.org/WAI/media/av/"
+    },
+    {
+      "label": "W3C WAI Perspective: Captions",
+      "url": "https://www.w3.org/WAI/perspective-videos/captions/"
+    }
+  ],
+  "Cognitive": [
+    {
+      "label": "W3C WAI: Making Content Usable for People with Cognitive and Learning Disabilities",
+      "url": "https://www.w3.org/WAI/cognitive/"
+    },
+    {
+      "label": "WCAG 2.2 Understanding: Reading Level",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/reading-level.html"
+    }
+  ],
+  "Intersectional": [
+    {
+      "label": "W3C WAI: How People with Disabilities Use the Web",
+      "url": "https://www.w3.org/WAI/people-use-web/"
+    },
+    {
+      "label": "Microsoft Inclusive Design",
+      "url": "https://www.microsoft.com/design/inclusive/"
+    }
+  ],
+  "Mental Health": [
+    {
+      "label": "W3C WAI: Making Content Usable for People with Cognitive and Learning Disabilities",
+      "url": "https://www.w3.org/WAI/cognitive/"
+    },
+    {
+      "label": "CDC: Mental Health",
+      "url": "https://www.cdc.gov/mental-health/"
+    }
+  ],
+  "Neurodiversity": [
+    {
+      "label": "W3C WAI: Making Content Usable for People with Cognitive and Learning Disabilities",
+      "url": "https://www.w3.org/WAI/cognitive/"
+    },
+    {
+      "label": "Autistic Self Advocacy Network: About Autism",
+      "url": "https://autisticadvocacy.org/about-asan/about-autism/"
+    }
+  ],
+  "Physical": [
+    {
+      "label": "W3C WAI Perspective: Keyboard Compatibility",
+      "url": "https://www.w3.org/WAI/perspective-videos/keyboard/"
+    },
+    {
+      "label": "WCAG 2.2 Understanding: Pointer Gestures",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/pointer-gestures.html"
+    }
+  ],
+  "Speech": [
+    {
+      "label": "W3C WAI Perspective: Voice Recognition",
+      "url": "https://www.w3.org/WAI/perspective-videos/voice/"
+    },
+    {
+      "label": "ASHA: Augmentative and Alternative Communication (AAC)",
+      "url": "https://www.asha.org/public/speech/disorders/aac/"
+    }
+  ],
+  "Visual": [
+    {
+      "label": "W3C WAI Perspective: Text Contrast",
+      "url": "https://www.w3.org/WAI/perspective-videos/contrast/"
+    },
+    {
+      "label": "W3C WAI Perspective: Screen Reader Compatibility",
+      "url": "https://www.w3.org/WAI/perspective-videos/screen-reader/"
+    }
+  ]
+}
