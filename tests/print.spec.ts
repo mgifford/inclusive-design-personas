@@ -3,10 +3,27 @@ import { test, expect } from '@playwright/test';
 test.describe('Print workflows', () => {
   test.beforeEach(async ({ page }) => {
     await page.context().addInitScript(() => {
-      const nativePrint = window.print;
+      (window as any).__printCapture = {
+        openCalls: 0,
+        html: ''
+      };
+      const nativeOpen = window.open;
+      window.open = function openStub(...args) {
+        const capture = (window as any).__printCapture;
+        capture.openCalls += 1;
+        const opened = nativeOpen.apply(window, args as any);
+        if (opened && opened.document && typeof opened.document.write === 'function') {
+          const originalWrite = opened.document.write.bind(opened.document);
+          opened.document.write = function captureWrite(html: string) {
+            capture.html = html;
+            return originalWrite(html);
+          };
+        }
+        return opened;
+      };
+
       window.print = function printStub() {
         (window as any).__printCalls = ((window as any).__printCalls || 0) + 1;
-        return nativePrint.call(window);
       };
     });
   });
@@ -35,16 +52,14 @@ test.describe('Print workflows', () => {
     const visibleCardCount = await page.locator('.card-preview').count();
     expect(visibleCardCount).toBeGreaterThan(0);
 
-    const [popup] = await Promise.all([
-      page.waitForEvent('popup'),
-      printSelectedButton.click()
-    ]);
-    await popup.waitForLoadState('load');
+    await printSelectedButton.click();
 
-    await expect(popup.locator('.print-card-group')).toHaveCount(visibleCardCount);
-    await expect(popup.locator('link[href$="css/style.css"]')).toHaveCount(1);
-    const printCalls = await popup.evaluate(() => (window as any).__printCalls || 0);
-    expect(printCalls).toBeGreaterThan(0);
+    const printCapture = await page.evaluate(() => (window as any).__printCapture);
+    const printGroupCount = (printCapture.html.match(/class="print-card-group"/g) || []).length;
+    expect(printCapture.openCalls).toBe(1);
+    expect(printGroupCount).toBe(visibleCardCount);
+    expect(printCapture.html).toContain('css/style.css');
+    expect(printCapture.html).toContain('window.print()');
   });
 
   test('homepage "Print all" includes every currently loaded card', async ({ page }) => {
@@ -57,14 +72,15 @@ test.describe('Print workflows', () => {
     const allCardCount = await page.locator('.card-preview').count();
     expect(allCardCount).toBeGreaterThan(0);
 
-    const [popup] = await Promise.all([
-      page.waitForEvent('popup'),
-      printAllButton.click()
-    ]);
-    await popup.waitForLoadState('load');
+    await printAllButton.click();
 
-    await expect(popup.locator('.print-card-group')).toHaveCount(allCardCount);
-    await expect(popup.locator('main .print-card-front h1').first()).toBeVisible();
+    const printCapture = await page.evaluate(() => (window as any).__printCapture);
+    const printGroupCount = (printCapture.html.match(/class="print-card-group"/g) || []).length;
+
+    expect(printCapture.openCalls).toBe(1);
+    expect(printGroupCount).toBe(allCardCount);
+    expect(printCapture.html).toContain('print-card-front');
+    expect(printCapture.html).toContain('Print all persona cards');
   });
 
   test('persona page print button triggers print and has print-only layout for print media', async ({ page }) => {
