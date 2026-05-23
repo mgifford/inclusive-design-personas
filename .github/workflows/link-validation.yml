@@ -26,6 +26,7 @@ jobs:
             --verbose
             --no-progress
             --accept 200,429
+            --exclude '^http://localhost:(8000|8765)/?$'
             --max-retries 2
             --retry-wait-time 2
             data/references.json
