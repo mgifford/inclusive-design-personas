@@ -921,10 +921,17 @@ main {
   /* ── Print card layout ──────────────────────────────────────
      Portrait letter page: 8.5" × 11" with 0.5" margins.
      Usable area: 7.5" wide × 10" tall.
-     The card occupies the top half (~5" tall, full 7.5" width).
-     Front = left half (3.75" wide), Back = right half (mirrored).
+     Two cards print per page (each 4.75" tall) separated by a
+     dashed cut guide, halving paper use.
+     Each card: Front = left half (3.75"), Back = right half.
      Fold the right panel behind the left — double-sided card.
      ─────────────────────────────────────────────────────────── */
+
+  /* Two cards share one page; the .print-page wrapper carries the page break */
+  .print-page {
+    page-break-after: always;
+    break-after: page;
+  }
 
   .print-card-wrapper {
     display: flex;
@@ -932,7 +939,6 @@ main {
     width: 7.5in;
     height: 4.75in;
     border: 1px solid #000;
-    page-break-after: always;
     overflow: hidden;
   }
 
@@ -1048,6 +1054,21 @@ main {
     text-transform: uppercase;
   }
 
+  /* Cut guide between two cards on the same page */
+  .print-cut-guide {
+    display: block !important;
+    width: 100%;
+    text-align: center;
+    font-size: 7pt;
+    color: #666;
+    padding: 3pt 0;
+    border-top: 1px dashed #999;
+    border-bottom: 1px dashed #999;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 2pt 0;
+  }
+
   /* Hide the regular card detail layout during print */
   .card-detail,
   .ai-prompt-section {
@@ -1066,5 +1087,9 @@ main {
 }
 
 .print-fold-guide {
+  display: none;
+}
+
+.print-cut-guide {
   display: none;
 }

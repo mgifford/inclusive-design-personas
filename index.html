@@ -160,28 +160,25 @@
           : '';
 
         return [
-          '<section class="print-card-group">',
-          '  <div class="print-card-wrapper">',
-          '    <div class="print-card-front">',
-          '      <span class="print-category">' + escapeHtml(card.category) + '</span>',
-          '      <h1>' + escapeHtml(card.title) + '</h1>',
-          '      <p class="print-name">' + escapeHtml(card.name) + '</p>',
-          '      <p class="print-backstory">' + escapeHtml(card.backstory) + '</p>',
-          '      <p class="print-condition">' + escapeHtml(card.conditionDescription) + '</p>',
+          '<div class="print-card-wrapper">',
+          '  <div class="print-card-front">',
+          '    <span class="print-category">' + escapeHtml(card.category) + '</span>',
+          '    <h1>' + escapeHtml(card.title) + '</h1>',
+          '    <p class="print-name">' + escapeHtml(card.name) + '</p>',
+          '    <p class="print-backstory">' + escapeHtml(card.backstory) + '</p>',
+          '    <p class="print-condition">' + escapeHtml(card.conditionDescription) + '</p>',
           printRelated,
-          '    </div>',
-          '    <div class="print-card-back">',
-          '      <h3>Digital Challenges</h3>',
-          '      <p>' + escapeHtml(card.digitalChallenges) + '</p>',
-          '      <h3>Assistive Technologies</h3>',
-          '      <ul>' + printTechItems + '</ul>',
-          '      <h3>Design Considerations</h3>',
-          '      <p>' + escapeHtml(card.designConsiderations) + '</p>',
-          printAiUrl,
-          '    </div>',
           '  </div>',
-          '  <p class="print-fold-guide">✂ Fold right panel behind left panel to create a double-sided card</p>',
-          '</section>'
+          '  <div class="print-card-back">',
+          '    <h3>Digital Challenges</h3>',
+          '    <p>' + escapeHtml(card.digitalChallenges) + '</p>',
+          '    <h3>Assistive Technologies</h3>',
+          '    <ul>' + printTechItems + '</ul>',
+          '    <h3>Design Considerations</h3>',
+          '    <p>' + escapeHtml(card.designConsiderations) + '</p>',
+          printAiUrl,
+          '  </div>',
+          '</div>'
         ].join('');
       }
 
@@ -191,9 +188,16 @@
         if (!printWindow) return;
         var cssHref = new URL('css/style.css', window.location.href).toString();
 
-        var cardsHtml = cardsToPrint.map(function (card) {
-          return buildPrintMarkup(card, allCards);
-        }).join('');
+        // Group cards two-per-page to save paper
+        var pagesHtml = '';
+        for (var i = 0; i < cardsToPrint.length; i += 2) {
+          var firstCard = buildPrintMarkup(cardsToPrint[i], allCards);
+          var secondCard = (i + 1 < cardsToPrint.length)
+            ? '<div class="print-cut-guide" aria-hidden="true">&#9988; Cut here to separate cards</div>' +
+              buildPrintMarkup(cardsToPrint[i + 1], allCards)
+            : '';
+          pagesHtml += '<div class="print-page">' + firstCard + secondCard + '</div>';
+        }
 
         printWindow.document.write([
           '<!DOCTYPE html>',
@@ -204,7 +208,7 @@
           '<link rel="stylesheet" href="' + escapeHtml(cssHref) + '">',
           '</head><body>',
           '<main>',
-          cardsHtml,
+          pagesHtml,
           '</main>',
           '<script>window.addEventListener("load", function(){ window.print(); });<\/script>',
           '</body></html>'
