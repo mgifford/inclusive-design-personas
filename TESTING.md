@@ -51,6 +51,8 @@ Automated accessibility checks run on:
 - Daily schedule (0:00 UTC)
 - Manual trigger via GitHub Actions
 
+Automated link validation also runs on every pull request and push to `main` via `.github/workflows/link-validation.yml`.
+
 ### Workflow: `.github/workflows/accessibility.yml`
 
 Three jobs run in parallel:

@@ -17,9 +17,12 @@ from urllib.parse import parse_qs, quote, urlparse
 
 BASE_DIR = Path(__file__).parent
 DATA_FILE = BASE_DIR / "data" / "cards.json"
+REFERENCES_FILE = BASE_DIR / "data" / "references.json"
 
 with open(DATA_FILE, encoding="utf-8") as f:
     ALL_CARDS = json.load(f)
+with open(REFERENCES_FILE, encoding="utf-8") as f:
+    REFERENCE_LINKS = json.load(f)
 
 CATEGORY_ORDER = [
     "Auditory",
@@ -237,6 +240,21 @@ def render_card(card_id, *, static=False):
         <p class="clinical-examples">{e(card['clinicalExamples'])}</p>
       </section>"""
 
+    references = REFERENCE_LINKS.get(card["category"], [])
+    references_section = ""
+    if references:
+        reference_items = "".join(
+            f'<li><a href="{e(r["url"])}" target="_blank" rel="noopener noreferrer">'
+            f'{e(r["label"])}<span class="visually-hidden"> (opens in new tab)</span></a></li>'
+            for r in references
+        )
+        references_section = f"""
+      <section class="card-section card-references-section no-print" aria-labelledby="section-references">
+        <h2 id="section-references">Further Reading</h2>
+        <p>Trusted references for designing with this disability category in mind.</p>
+        <ul class="card-reference-list" role="list">{reference_items}</ul>
+      </section>"""
+
     ai_section = ""
     if card.get("aiPromptUrl"):
         prompt_block = ""
@@ -268,13 +286,6 @@ def render_card(card_id, *, static=False):
         Use the {e(card['title'])} AI Prompt ↗
       </a>
     </aside>"""
-
-    print_ai = ""
-    if card.get("aiPromptUrl"):
-        print_ai = f"""
-          <h3>AI Development Prompt</h3>
-          <p>Incorporate {e(card['title'])} into your AI development with this prompt:</p>
-          <p class="print-ai-url">{e(card['aiPromptUrl'])}</p>"""
 
     print_tech_items = "\n".join(f"              <li>{e(t.strip())}</li>" for t in techs)
 
@@ -328,6 +339,7 @@ def render_card(card_id, *, static=False):
         <h2 id="section-design">Design Considerations</h2>
         <p>{e(card['designConsiderations'])}</p>
       </section>
+{references_section}
 {clinical}
 {related_section}
     </article>
@@ -352,7 +364,6 @@ def render_card(card_id, *, static=False):
           </ul>
           <h3>Design Considerations</h3>
           <p>{e(card['designConsiderations'])}</p>
-{print_ai}
         </div>
       </div>
       <p class="print-fold-guide">✂ Fold right panel behind left panel to create a double-sided card</p>
