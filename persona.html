@@ -25,7 +25,7 @@
   <header class="site-header" role="banner">
     <div class="header-inner">
       <div class="header-text">
-        <h1><a href="index.html">Inclusive Design Persona Cards</a></h1>
+        <p class="site-title"><a href="index.html">Inclusive Design Persona Cards</a></p>
       </div>
       <div class="header-actions">
         <button id="header-print-btn" class="icon-action-btn no-print" type="button" aria-label="Print this card">
@@ -228,7 +228,7 @@
           '           width="112" height="112">',
           '      <div class="card-detail__hero-text">',
           '        <span class="card-detail__category">' + safeCategory + '</span>',
-          '        <h2 id="card-heading">' + safeTitle + '</h2>',
+          '        <h1 id="card-heading">' + safeTitle + '</h1>',
           '        <p class="card-detail__persona-name">Persona: ' + safeName + '</p>',
           '      </div>',
           '    </div>',
@@ -268,7 +268,7 @@
           '  <div class="print-card-wrapper">',
           '    <div class="print-card-front">',
           '      <span class="print-category">' + safeCategory + '</span>',
-          '      <h1>' + safeTitle + '</h1>',
+          '      <h2 class="print-title">' + safeTitle + '</h2>',
           '      <p class="print-name">' + safeName + '</p>',
           '      <p class="print-backstory">' + escapeHtml(card.backstory) + '</p>',
           '      <p class="print-condition">' + escapeHtml(card.conditionDescription) + '</p>',

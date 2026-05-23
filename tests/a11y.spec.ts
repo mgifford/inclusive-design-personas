@@ -182,7 +182,7 @@ test.describe('Accessibility - Content Requirements', () => {
 
     for (let i = 0; i < count; i++) {
       const alt = await images.nth(i).getAttribute('alt');
-      expect(alt).toBeTruthy(`Image ${i} is missing alt text`);
+      expect(alt, `Image ${i} is missing alt text`).toBeTruthy();
     }
   });
 
