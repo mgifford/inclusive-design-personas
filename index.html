@@ -187,7 +187,7 @@
 
       function printCards(cardsToPrint, heading) {
         if (!cardsToPrint.length) return;
-        var printWindow = window.open('', '_blank', 'noopener,noreferrer');
+        var printWindow = window.open('', '_blank');
         if (!printWindow) return;
         var cssHref = new URL('css/style.css', window.location.href).toString();
 
