@@ -55,7 +55,7 @@ test.describe('Print workflows', () => {
     await printSelectedButton.click();
 
     const printCapture = await page.evaluate(() => (window as any).__printCapture);
-    const printGroupCount = (printCapture.html.match(/class="print-card-group"/g) || []).length;
+    const printGroupCount = (printCapture.html.match(/class="print-card-wrapper"/g) || []).length;
     expect(printCapture.openCalls).toBe(1);
     expect(printGroupCount).toBe(visibleCardCount);
     expect(printCapture.html).toContain('css/style.css');
@@ -75,7 +75,7 @@ test.describe('Print workflows', () => {
     await printAllButton.click();
 
     const printCapture = await page.evaluate(() => (window as any).__printCapture);
-    const printGroupCount = (printCapture.html.match(/class="print-card-group"/g) || []).length;
+    const printGroupCount = (printCapture.html.match(/class="print-card-wrapper"/g) || []).length;
 
     expect(printCapture.openCalls).toBe(1);
     expect(printGroupCount).toBe(allCardCount);
