@@ -142,7 +142,13 @@ Each card page includes a **print-ready foldable layout** optimized for letter p
 - **Front panel** — category, title, persona name, backstory, condition description, and related cards
 - **Back panel** — digital challenges, assistive technologies, design considerations, and the AI prompt URL
 
-To print: open any card page, click **Print this card**, and print at 100% scale with default margins. Fold the right panel behind the left to create a double-sided card.
+Print options:
+
+- **Per card:** open any card page and use the print icon near the theme toggle
+- **All cards:** from the home page, use the **Print all cards** icon near the theme toggle
+- **Selected categories:** on the home page, choose categories in **Filter and print cards**, then use **Print selected cards**
+
+Print at 100% scale with default margins. Fold each right panel behind the left panel to create double-sided cards.
 
 ---
 
