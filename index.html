@@ -26,16 +26,34 @@
         <h1>Inclusive Design Persona Cards</h1>
         <p class="tagline">40 personas. Every kind of user. Better products for everyone.</p>
       </div>
-      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode">
-        <svg class="sun-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18">
-          <circle cx="12" cy="12" r="5" fill="currentColor"/>
-          <path stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"
-                d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
-        </svg>
-        <svg class="moon-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18">
-          <path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-      </button>
+      <div class="header-actions">
+        <button id="print-visible-btn" class="icon-action-btn" type="button" aria-label="Print selected cards" disabled>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <span class="visually-hidden">Print selected cards</span>
+        </button>
+        <button id="print-all-btn" class="icon-action-btn" type="button" aria-label="Print all cards" disabled>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <span class="visually-hidden">Print all cards</span>
+        </button>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode">
+          <svg class="sun-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18">
+            <circle cx="12" cy="12" r="5" fill="currentColor"/>
+            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"
+                  d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+          </svg>
+          <svg class="moon-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18">
+            <path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -47,6 +65,12 @@
         situational impairments, and cognitive differences. Use them during product planning and design
         reviews to identify barriers early and keep inclusive design at the center of decisions.
       </p>
+    </section>
+
+    <section class="category-filters-panel no-print" aria-labelledby="filters-heading">
+      <h2 id="filters-heading">Filter and print cards</h2>
+      <p>Select categories, then use the print icons in the header to print selected cards or all cards.</p>
+      <div id="category-filters" class="category-filters" role="group" aria-label="Filter persona categories"></div>
     </section>
 
     <div id="cards-root"></div>
@@ -62,6 +86,11 @@
         'Auditory', 'Cognitive', 'Intersectional', 'Mental Health',
         'Neurodiversity', 'Physical', 'Speech', 'Visual'
       ];
+      var allCards = [];
+      var visibleCards = [];
+      var activeCategories = new Set();
+      var printVisibleBtn = document.getElementById('print-visible-btn');
+      var printAllBtn = document.getElementById('print-all-btn');
 
       function escapeHtml(value) {
         return String(value ?? '')
@@ -81,11 +110,114 @@
         return 'https://robohash.org/' + encodeURIComponent(seed) + '.png?size=' + size + '&set=set1&bgset=bg1';
       }
 
+      function updatePrintButtons() {
+        if (printAllBtn) printAllBtn.disabled = !allCards.length;
+        if (printVisibleBtn) printVisibleBtn.disabled = !visibleCards.length;
+      }
+
+      function renderFilters(availableCategories) {
+        var filtersRoot = document.getElementById('category-filters');
+        if (!filtersRoot) return;
+        filtersRoot.innerHTML = availableCategories.map(function (name) {
+          var id = 'filter-' + catId(name);
+          return [
+            '<label class="category-filter-option" for="' + id + '">',
+            '  <input type="checkbox" id="' + id + '" value="' + escapeHtml(name) + '"' + (activeCategories.has(name) ? ' checked' : '') + '>',
+            '  <span>' + escapeHtml(name) + '</span>',
+            '</label>'
+          ].join('');
+        }).join('');
+
+        filtersRoot.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) {
+          checkbox.addEventListener('change', function (event) {
+            var category = event.target.value;
+            if (event.target.checked) {
+              activeCategories.add(category);
+            } else {
+              activeCategories.delete(category);
+            }
+            renderCards(allCards);
+          });
+        });
+      }
+
+      function buildPrintMarkup(card, cards) {
+        var relatedCards = cards.filter(function (c) {
+          return c.category === card.category && c.id !== card.id;
+        });
+        var printRelated = '';
+        if (relatedCards.length) {
+          var relTitles = relatedCards.map(function (r) { return r.title; }).join(', ');
+          printRelated = '<div class="print-related"><strong>Related:</strong> ' + escapeHtml(relTitles) + '</div>';
+        }
+        var printTechItems = (card.assistiveTechnologies || []).map(function (tech) {
+          return '<li>' + escapeHtml(tech.trim()) + '</li>';
+        }).join('');
+        var printAiUrl = card.aiPromptUrl
+          ? '<h3>AI Development Prompt</h3><p class="print-ai-url">' + escapeHtml(card.aiPromptUrl) + '</p>'
+          : '';
+
+        return [
+          '<section class="print-card-group">',
+          '  <div class="print-card-wrapper">',
+          '    <div class="print-card-front">',
+          '      <span class="print-category">' + escapeHtml(card.category) + '</span>',
+          '      <h1>' + escapeHtml(card.title) + '</h1>',
+          '      <p class="print-name">' + escapeHtml(card.name) + '</p>',
+          '      <p class="print-backstory">' + escapeHtml(card.backstory) + '</p>',
+          '      <p class="print-condition">' + escapeHtml(card.conditionDescription) + '</p>',
+          printRelated,
+          '    </div>',
+          '    <div class="print-card-back">',
+          '      <h3>Digital Challenges</h3>',
+          '      <p>' + escapeHtml(card.digitalChallenges) + '</p>',
+          '      <h3>Assistive Technologies</h3>',
+          '      <ul>' + printTechItems + '</ul>',
+          '      <h3>Design Considerations</h3>',
+          '      <p>' + escapeHtml(card.designConsiderations) + '</p>',
+          printAiUrl,
+          '    </div>',
+          '  </div>',
+          '  <p class="print-fold-guide">✂ Fold right panel behind left panel to create a double-sided card</p>',
+          '</section>'
+        ].join('');
+      }
+
+      function printCards(cardsToPrint, heading) {
+        if (!cardsToPrint.length) return;
+        var printWindow = window.open('', '_blank', 'noopener,noreferrer');
+        if (!printWindow) return;
+        var cssHref = new URL('css/style.css', window.location.href).toString();
+
+        var cardsHtml = cardsToPrint.map(function (card) {
+          return buildPrintMarkup(card, allCards);
+        }).join('');
+
+        printWindow.document.write([
+          '<!DOCTYPE html>',
+          '<html lang="en"><head>',
+          '<meta charset="UTF-8">',
+          '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+          '<title>' + escapeHtml(heading) + '</title>',
+          '<link rel="stylesheet" href="' + escapeHtml(cssHref) + '">',
+          '</head><body>',
+          '<main>',
+          cardsHtml,
+          '</main>',
+          '<script>window.addEventListener("load", function(){ window.print(); });<\/script>',
+          '</body></html>'
+        ].join(''));
+        printWindow.document.close();
+      }
+
       function renderCards(cards) {
         var root = document.getElementById('cards-root');
         var byCategory = {};
+        visibleCards = cards.filter(function (card) {
+          return activeCategories.has(card.category);
+        });
 
-        cards.forEach(function (card) {
+        visibleCards.forEach(function (card) {
           if (!byCategory[card.category]) byCategory[card.category] = [];
           byCategory[card.category].push(card);
         });
@@ -129,7 +261,8 @@
           ].join('');
         }).join('');
 
-        root.innerHTML = sections || '<p role="status">No persona cards found.</p>';
+        root.innerHTML = sections || '<p role="status">No persona cards found for the selected categories.</p>';
+        updatePrintButtons();
 
         // If URL has a hash, scroll to it after rendering
         if (window.location.hash) {
@@ -153,10 +286,32 @@
             throw new Error('Failed to load persona cards due to invalid data format.');
           }
         })
-        .then(renderCards)
+        .then(function (cards) {
+          allCards = cards;
+          cards.map(function (card) { return card.category; }).forEach(function (category) {
+            activeCategories.add(category);
+          });
+          var availableCategories = categoryOrder.filter(function (name) {
+            return cards.some(function (card) { return card.category === name; });
+          });
+          renderFilters(availableCategories);
+          renderCards(cards);
+        })
         .catch(function (error) {
           document.getElementById('cards-root').innerHTML = '<p role="alert">' + escapeHtml(error.message) + '</p>';
         });
+
+      if (printAllBtn) {
+        printAllBtn.addEventListener('click', function () {
+          printCards(allCards, 'Print all persona cards');
+        });
+      }
+
+      if (printVisibleBtn) {
+        printVisibleBtn.addEventListener('click', function () {
+          printCards(visibleCards, 'Print selected persona cards');
+        });
+      }
     })();
   </script>
 
