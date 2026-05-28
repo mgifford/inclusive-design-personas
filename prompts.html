@@ -300,6 +300,18 @@
     color: var(--color-link-hover);
   }
 
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   @media (max-width: 600px) {
     h1 { font-size: 1.5rem; }
     .toc { padding: 1rem 1.25rem; }
@@ -1459,11 +1471,11 @@ Return:
   <footer class="site-footer" role="contentinfo">
     <p>Inclusive Design Persona Cards &mdash; Helping teams build accessible, human-centered products.</p>
     <p>
-      <a href="https://github.com/mgifford/inclusive-design-personas" target="_blank" rel="noopener noreferrer">View source on GitHub</a>
+      <a href="https://github.com/mgifford/inclusive-design-personas" target="_blank" rel="noopener noreferrer">View source on GitHub<span class="visually-hidden"> (opens in new tab)</span></a>
       &bull;
-      Inspired by <a href="https://github.com/7mary4/inclusive-design-personas" target="_blank" rel="noopener noreferrer">7mary4/inclusive-design-personas</a>
+      Inspired by <a href="https://github.com/7mary4/inclusive-design-personas" target="_blank" rel="noopener noreferrer">7mary4/inclusive-design-personas<span class="visually-hidden"> (opens in new tab)</span></a>
       &bull;
-      Licensed under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0 1.0 Universal</a>
+      Licensed under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0 1.0 Universal<span class="visually-hidden"> (opens in new tab)</span></a>
     </p>
   </footer>
 </div>
